@@ -28,6 +28,7 @@ Pick a PDF from your device and it opens right there. The file is read inside th
 - Page numbers at the top or bottom, as 1 or 1 / N.
 - Watermark text, Korean included, with adjustable opacity.
 - Sign or draw on the current page with a pen, highlighter and eraser.
+- Sticky notes: tap a page to pin a note at that spot, in yellow, blue or pink. Notes are kept per file in the browser and come back at the same place, and "save with notes" writes them into a new PDF.
 - Open a password-protected PDF and save an unlocked copy. The unlocked copy is made of page images, so its text is not selectable.
 - Only the visible pages are drawn, so long documents scroll without lag.
 - Can be installed to the home screen when served over https, and works offline.

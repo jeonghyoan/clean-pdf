@@ -67,6 +67,7 @@
     .btn:active { opacity: 0.75; }
     .btn:disabled { opacity: 0.4; cursor: default; }
     .btn.icon { padding: 7px 9px; font-size: 14px; }
+    .btn.icon.active { background: var(--tint); border-color: var(--accent); color: var(--accent); }
     .filename {
       font-size: 13px; font-weight: 600; color: var(--muted);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 92px;
@@ -90,6 +91,49 @@
       font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap;
       min-width: 46px; text-align: center;
     }
+
+    /* ---------- 메모(포스트잇) ---------- */
+    .memobar {
+      position: fixed; top: 54px; left: 0; right: 0; z-index: 26;
+      height: 46px; padding: 0 10px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: none; align-items: center; gap: 6px;
+      box-shadow: var(--shadow);
+    }
+    body.memo-mode .memobar { display: flex; }
+    body.memo-mode .viewer-wrap { padding-top: 110px; }
+    body.memo-mode .searchbar { top: 100px; }
+    body.memo-mode.search-open .viewer-wrap { padding-top: 158px; }
+    body.immersive.memo-mode .memobar {
+      top: 0; height: calc(46px + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+    }
+    body.immersive.memo-mode .viewer-wrap { padding-top: calc(58px + env(safe-area-inset-top)); }
+    .memo-hint {
+      flex: 1; min-width: 0; font-size: 11.5px; font-weight: 600; color: var(--muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .memobar .btn { padding: 6px 9px; font-size: 12px; }
+    .memobar .btn.primary { padding: 6px 10px; }
+    body.memo-mode .page-card { cursor: crosshair; }
+    body.memo-mode .textLayer { pointer-events: none; }
+    .memo-layer {
+      position: absolute; inset: 0; z-index: 5;
+      pointer-events: none; overflow: hidden;
+    }
+    .memo-pin {
+      position: absolute; max-width: 150px;
+      padding: 3px 7px; border-radius: 7px; border: 1px solid;
+      font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: -0.1px;
+      line-height: 1.35; text-align: left; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      pointer-events: auto; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.16);
+    }
+    .memo-pin:active { opacity: 0.8; }
+    .memo-yellow { background: #fdf3c4; border-color: #ecdf9f; color: #5a4a10; }
+    .memo-blue { background: #e2eefc; border-color: #c4daf5; color: #16395f; }
+    .memo-pink { background: #fce4ec; border-color: #f5c8d6; color: #622437; }
 
     /* ---------- 본문 ---------- */
     .viewer-wrap {
@@ -166,7 +210,8 @@
     }
     .total-pages { font-size: 13px; color: var(--muted); font-weight: 600; }
     .bar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
-    #fileInput, #imageInput { display: none; }
+    #fileInput, #imageInput, #mergeInput { display: none; }
+    input[type="file"] { display: none; }
 
     /* ---------- 오버레이 공통 ---------- */
     .backdrop {
@@ -362,6 +407,27 @@
     .modal-box h2 { font-size: 16px; margin: 0 0 8px; }
     .modal-box p { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+    .modal-box.wide { max-width: 400px; }
+
+    /* ---------- 메모 입력 모달 ---------- */
+    .memo-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .memo-head h2 { margin: 0; }
+    .memo-page { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+    .memo-text {
+      display: block; width: 100%; min-height: 96px; resize: vertical;
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px;
+      background: var(--bg); color: var(--text); font-family: inherit;
+      font-size: 14px; line-height: 1.5; outline: none;
+    }
+    .memo-text:focus { border-color: var(--accent); }
+    .memo-colors { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .memo-colors .label { font-size: 11.5px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+    .memo-swatch { width: 26px; height: 26px; border-radius: 8px; border: 1px solid; cursor: pointer; padding: 0; }
+    .memo-swatch.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent); }
+    .memo-modal .modal-actions { margin-top: 16px; }
+    .memo-modal .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+    .btn.danger { color: #dc2626; }
+    body.dark .btn.danger { color: #f87171; }
 
     /* ---------- 아이콘 ---------- */
     .ico { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
@@ -494,6 +560,7 @@
       <span class="filename" id="fileName">파일 없음</span>
     </div>
     <div class="group">
+      <button class="btn icon" id="memoBtn" aria-label="메모" aria-pressed="false"><span class="ico" data-icon="note"></span></button>
       <button class="btn icon" id="searchToggleBtn" disabled aria-label="검색"><span class="ico" data-icon="search"></span></button>
       <button class="btn icon" id="panelBtn" aria-label="목차와 썸네일"><span class="ico" data-icon="list"></span></button>
       <button class="btn icon" id="moreBtn" aria-label="더보기"><span class="ico" data-icon="more"></span></button>
@@ -506,6 +573,12 @@
     <button class="btn icon" id="searchPrevBtn" disabled aria-label="이전 결과"><span class="ico" data-icon="chevron-up"></span></button>
     <button class="btn icon" id="searchNextBtn" disabled aria-label="다음 결과"><span class="ico" data-icon="chevron-down"></span></button>
     <button class="btn icon" id="searchCloseBtn" aria-label="검색 닫기"><span class="ico" data-icon="x"></span></button>
+  </div>
+
+  <div class="memobar" id="memoBar">
+    <span class="memo-hint" id="memoHint">페이지를 눌러 메모 추가</span>
+    <button class="btn primary" id="memoSaveBtn">메모 포함 저장</button>
+    <button class="btn" id="memoDoneBtn">완료</button>
   </div>
 
   <div class="backdrop" id="backdrop"></div>
@@ -563,6 +636,9 @@
       </button>
       <button class="sheet-item" id="btnSign">
         <span class="sheet-ico ico" data-icon="pen-line"></span><span class="sheet-label">서명</span>
+      </button>
+      <button class="sheet-item" id="btnMemo">
+        <span class="sheet-ico ico" data-icon="note"></span><span class="sheet-label">메모</span>
       </button>
       <button class="sheet-item" id="viewModeBtn" disabled>
         <span class="sheet-ico ico" data-icon="book-open"></span><span class="sheet-label">연속 스크롤</span>
@@ -639,6 +715,7 @@
           <button class="home-tile" data-tool="numbers"><span class="tile-badge ico" data-icon="hash"></span><span class="home-label">쪽 번호</span></button>
           <button class="home-tile" data-tool="watermark"><span class="tile-badge ico" data-icon="droplet"></span><span class="home-label">워터마크</span></button>
           <button class="home-tile" data-tool="sign"><span class="tile-badge ico" data-icon="pen-line"></span><span class="home-label">서명 · 그리기</span></button>
+          <button class="home-tile" data-tool="memo"><span class="tile-badge ico" data-icon="note"></span><span class="home-label">메모</span></button>
         </div>
       </section>
     </div>
@@ -772,6 +849,27 @@
     </div>
   </div>
 
+  <div class="modal memo-modal" id="memoModal" role="dialog" aria-label="메모">
+    <div class="modal-box wide">
+      <div class="memo-head">
+        <h2 id="memoTitle">메모 추가</h2>
+        <span class="memo-page" id="memoPage">1쪽</span>
+      </div>
+      <textarea class="memo-text" id="memoText" rows="4" placeholder="메모를 입력하세요"></textarea>
+      <div class="memo-colors">
+        <span class="label">색</span>
+        <button class="memo-swatch memo-yellow active" data-color="yellow" aria-label="노랑"></button>
+        <button class="memo-swatch memo-blue" data-color="blue" aria-label="파랑"></button>
+        <button class="memo-swatch memo-pink" data-color="pink" aria-label="분홍"></button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn danger" id="memoDeleteBtn" hidden>삭제</button>
+        <button class="btn" id="memoCancelBtn">취소</button>
+        <button class="btn primary" id="memoSaveMemoBtn">저장</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     'use strict';
     const el = (id) => document.getElementById(id);
@@ -806,6 +904,7 @@
       hash: '<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
       droplet: '<path d="M12 3s6 6.4 6 10.5A6 6 0 0 1 6 13.5C6 9.4 12 3 12 3Z"/>',
       'pen-line': '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      note: '<path d="M4.5 5.5A1.5 1.5 0 0 1 6 4h12a1.5 1.5 0 0 1 1.5 1.5V14L14 20H6a1.5 1.5 0 0 1-1.5-1.5Z"/><path d="M19.5 14H15a1 1 0 0 0-1 1v5"/>',
       type: '<path d="M4 6V4h16v2M12 4v16M8 20h8"/>',
       'book-open': '<path d="M12 6.5C10 5 7.5 4.3 4 4.3V18c3.5 0 6 .7 8 2.2 2-1.5 4.5-2.2 8-2.2V4.3c-3.5 0-6 .7-8 2.2Z"/><path d="M12 6.5V20"/>',
       rotate: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/>',
@@ -1027,6 +1126,7 @@
       currentFileName = file.name;
       currentFile = file;
       currentFileKey = `pdf_pos_${file.name}_${file.size}`;
+      await loadMemosFor(file.name, file.size);
       fileNameEl.textContent = file.name;
       clearSearch();
       searchInput.value = '';
@@ -1119,6 +1219,7 @@
 
     function showHome() {
       document.body.classList.add('home-view');
+      setMemoMode(false);
       homeMenu.hidden = false;
       el('homeBar').hidden = false;
       el('viewerBar').hidden = true;
@@ -1186,6 +1287,11 @@
     }
 
     function runHomeTool(key) {
+      if (key === 'memo') {
+        setMemoMode(true);
+        showViewer();
+        return;
+      }
       if (key === 'pdfimg') {
         openScreen(pdfToImgScreen);
         refreshExportScreen();
@@ -1204,7 +1310,7 @@
       pendingTool = null;
       fileInput.click();
     });
-    el('homeGrid').addEventListener('click', (e) => {
+    el('homeMenu').addEventListener('click', (e) => {
       const tile = e.target.closest('.home-tile');
       if (!tile) return;
       startHomeTool(tile.dataset.tool);
@@ -1316,6 +1422,7 @@
         textLayer.style.setProperty('--scale-factor', String(viewport.scale));
         card.appendChild(textLayer);
         if (badge) card.appendChild(badge);
+        renderMemoPins(num, card, viewport);
 
         const ctx = canvas.getContext('2d');
         await page.render({
@@ -1538,6 +1645,7 @@
       if (!pdfDoc || e.touches.length !== 0) return;
       const t = e.changedTouches[0];
       if (!t) return;
+      if (memoMode) { lastTap = { t: 0, x: 0, y: 0 }; return; }
       const now = Date.now();
       if (now - lastTap.t < 320 && Math.hypot(t.clientX - lastTap.x, t.clientY - lastTap.y) < 26) {
         lastTap = { t: 0, x: 0, y: 0 };
@@ -1548,7 +1656,7 @@
     });
 
     pagesEl.addEventListener('dblclick', (e) => {
-      if (!pdfDoc) return;
+      if (!pdfDoc || memoMode) return;
       const target = e.target;
       // 글자 위 더블클릭은 단어 선택으로 둔다
       if (target && target.tagName === 'SPAN' && target.closest('.textLayer')) return;
@@ -1629,7 +1737,7 @@
       const anySheet = panel.classList.contains('open') || moreSheet.classList.contains('open');
       backdrop.classList.toggle('show', anySheet);
       const anyScreen = !!document.querySelector('.screen.open');
-      const modalOpen = el('pwModal').classList.contains('open');
+      const modalOpen = el('pwModal').classList.contains('open') || el('memoModal').classList.contains('open');
       document.body.classList.toggle('overlay-open', anySheet || anyScreen || modalOpen);
     }
 
@@ -1831,6 +1939,7 @@
       fullscreenBtn.disabled = !hasDoc;
       el('txtExportBtn').disabled = !hasDoc;
       el('unlockSaveBtn').disabled = !(hasDoc && docEncrypted);
+      el('btnMemo').disabled = !hasDoc;
       el('unlockNote').hidden = !(hasDoc && docEncrypted);
       viewModeBtn.querySelector('.sheet-label').textContent = viewMode === 'scroll' ? '연속 스크롤' : '한 페이지씩';
       const isFull = !!document.fullscreenElement || document.body.classList.contains('immersive');
@@ -1841,6 +1950,7 @@
     // ---------- 최근 문서 (IndexedDB에 저장) ----------
     const RECENT_DB = 'clean-pdf-db';
     const RECENT_STORE = 'recent-files';
+    const MEMO_STORE = 'memos';
     const RECENT_MAX = 5;
     const RECENT_MAX_BYTES = 30 * 1024 * 1024;
 
@@ -1854,11 +1964,14 @@
           reject(new Error('no-idb'));
           return;
         }
-        const req = indexedDB.open(RECENT_DB, 1);
+        const req = indexedDB.open(RECENT_DB, 2);
         req.onupgradeneeded = () => {
           const db = req.result;
           if (!db.objectStoreNames.contains(RECENT_STORE)) {
             db.createObjectStore(RECENT_STORE, { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains(MEMO_STORE)) {
+            db.createObjectStore(MEMO_STORE, { keyPath: 'id' });
           }
         };
         req.onsuccess = () => resolve(req.result);
@@ -1866,42 +1979,57 @@
       });
     }
 
-    function idbAll() {
+    function idbAll(store) {
+      const name = store || RECENT_STORE;
       return openRecentDb()
         .then((db) => new Promise((resolve, reject) => {
-          const rq = db.transaction(RECENT_STORE, 'readonly').objectStore(RECENT_STORE).getAll();
+          const rq = db.transaction(name, 'readonly').objectStore(name).getAll();
           rq.onsuccess = () => resolve(rq.result || []);
           rq.onerror = () => reject(rq.error);
         }))
         .catch(() => []);
     }
 
-    function idbPut(rec) {
+    function idbGet(id, store) {
+      const name = store || RECENT_STORE;
+      return openRecentDb()
+        .then((db) => new Promise((resolve, reject) => {
+          const rq = db.transaction(name, 'readonly').objectStore(name).get(id);
+          rq.onsuccess = () => resolve(rq.result || null);
+          rq.onerror = () => reject(rq.error);
+        }))
+        .catch(() => null);
+    }
+
+    function idbPut(rec, store) {
+      const name = store || RECENT_STORE;
       return openRecentDb().then((db) => new Promise((resolve, reject) => {
-        const tx = db.transaction(RECENT_STORE, 'readwrite');
-        tx.objectStore(RECENT_STORE).put(rec);
+        const tx = db.transaction(name, 'readwrite');
+        tx.objectStore(name).put(rec);
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => reject(tx.error || new Error('idb'));
         tx.onabort = () => reject(tx.error || new Error('idb'));
       }));
     }
 
-    function idbDelete(id) {
+    function idbDelete(id, store) {
+      const name = store || RECENT_STORE;
       return openRecentDb()
         .then((db) => new Promise((resolve) => {
-          const tx = db.transaction(RECENT_STORE, 'readwrite');
-          tx.objectStore(RECENT_STORE).delete(id);
+          const tx = db.transaction(name, 'readwrite');
+          tx.objectStore(name).delete(id);
           tx.oncomplete = () => resolve(true);
           tx.onerror = () => resolve(false);
         }))
         .catch(() => {});
     }
 
-    function idbClear() {
+    function idbClear(store) {
+      const name = store || RECENT_STORE;
       return openRecentDb()
         .then((db) => new Promise((resolve) => {
-          const tx = db.transaction(RECENT_STORE, 'readwrite');
-          tx.objectStore(RECENT_STORE).clear();
+          const tx = db.transaction(name, 'readwrite');
+          tx.objectStore(name).clear();
           tx.oncomplete = () => resolve(true);
           tx.onerror = () => resolve(false);
         }))
@@ -2028,6 +2156,8 @@
       if (entry.pages) parts.push(`${entry.pages}쪽`);
       if (entry.at) parts.push(formatDay(entry.at));
       if (entry.size) parts.push(formatBytes(entry.size));
+      const memoN = memoCountFor(entry.name, entry.size);
+      if (memoN) parts.push(`메모 ${memoN}`);
       if (!entry.saved) parts.push('저장 안 됨');
       sub.textContent = parts.join(' · ');
       main.append(name, sub);
@@ -2088,6 +2218,456 @@
     }
 
     el('clearRecentBtn').addEventListener('click', () => { clearAllRecent(); });
+
+    // =========================================================
+    //  메모(포스트잇 주석)
+    // =========================================================
+    const MEMO_INDEX_KEY = 'pdf_memo_index';
+    const MEMO_STYLES = {
+      yellow: { fill: '#fdf3c4', border: '#ecdf9f', text: '#5a4a10' },
+      blue: { fill: '#e2eefc', border: '#c4daf5', text: '#16395f' },
+      pink: { fill: '#fce4ec', border: '#f5c8d6', text: '#622437' }
+    };
+
+    let currentMemos = [];
+    let memoMode = false;
+    let memoColor = 'yellow';
+    let memoEditId = null;
+    let memoPage = 1;
+    let memoAnchor = null;
+
+    function memoKeyFor(name, size) {
+      return recentKey(name, size);
+    }
+
+    function newMemoId() {
+      return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+
+    function memoStyle(color) {
+      return MEMO_STYLES[color] || MEMO_STYLES.yellow;
+    }
+
+    function memosForPage(num) {
+      return currentMemos.filter((m) => m && m.page === num);
+    }
+
+    function loadMemoIndex() {
+      try {
+        const v = JSON.parse(localStorage.getItem(MEMO_INDEX_KEY) || '{}');
+        return v && typeof v === 'object' ? v : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function memoCountFor(name, size) {
+      if (!name) return 0;
+      const n = loadMemoIndex()[memoKeyFor(name, size)];
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function setMemoCount(key, count) {
+      const idx = loadMemoIndex();
+      if (count > 0) idx[key] = count;
+      else delete idx[key];
+      try { localStorage.setItem(MEMO_INDEX_KEY, JSON.stringify(idx)); } catch (e) {}
+    }
+
+    async function loadMemosFor(name, size) {
+      currentMemos = [];
+      if (!name || !('indexedDB' in window)) return;
+      try {
+        const rec = await idbGet(memoKeyFor(name, size), MEMO_STORE);
+        if (rec && Array.isArray(rec.items)) {
+          currentMemos = rec.items.filter(
+            (m) => m && m.page >= 1 && typeof m.text === 'string' && Number.isFinite(m.fx) && Number.isFinite(m.fy)
+          );
+        }
+      } catch (e) {
+        currentMemos = [];
+      }
+      if (currentMemos.length) setMemoCount(memoKeyFor(name, size), currentMemos.length);
+    }
+
+    async function persistMemos() {
+      if (!currentFileName) return;
+      const size = currentFile ? currentFile.size : 0;
+      const key = memoKeyFor(currentFileName, size);
+      const count = currentMemos.length;
+      try {
+        if (!count) {
+          await idbDelete(key, MEMO_STORE);
+        } else {
+          await idbPut({ id: key, name: currentFileName, size, at: Date.now(), items: currentMemos }, MEMO_STORE);
+        }
+        setMemoCount(key, count);
+      } catch (e) {
+        console.error(e);
+        notify('메모를 저장하지 못했어요. 저장 공간을 확인해 주세요.');
+      }
+      if (document.body.classList.contains('home-view')) renderHomeRecent();
+    }
+
+    // 페이지 위 핀/배지
+    function memoPinText(m) {
+      const t = String(m.text || '').replace(/\s+/g, ' ').trim();
+      if (!t) return '메모';
+      return t.length > 16 ? t.slice(0, 16) + '…' : t;
+    }
+
+    function memoLayerFor(card) {
+      let layer = card.querySelector('.memo-layer');
+      if (!layer) {
+        layer = document.createElement('div');
+        layer.className = 'memo-layer';
+        card.appendChild(layer);
+      }
+      return layer;
+    }
+
+    function renderMemoPins(num, card, viewport) {
+      if (!card) return;
+      const vp = viewport || pageViewports.get(num);
+      if (!vp || !vp.viewBox) return;
+      const layer = memoLayerFor(card);
+      layer.innerHTML = '';
+      const list = memosForPage(num);
+      if (!list.length) return;
+      const box = vp.viewBox;
+      const bw = box[2] - box[0];
+      const bh = box[3] - box[1];
+      list.forEach((m) => {
+        const pt = vp.convertToViewportPoint(box[0] + m.fx * bw, box[1] + m.fy * bh);
+        const pin = document.createElement('button');
+        pin.type = 'button';
+        pin.className = 'memo-pin memo-' + (MEMO_STYLES[m.color] ? m.color : 'yellow');
+        pin.style.maxWidth = Math.round(Math.max(96, vp.width * 0.5)) + 'px';
+        pin.textContent = memoPinText(m);
+        pin.setAttribute('aria-label', `${num}쪽 메모 열기`);
+        pin.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openMemoModal(m);
+        });
+        layer.appendChild(pin);
+        const pw = pin.offsetWidth;
+        const ph = pin.offsetHeight;
+        const left = clampNum(pt[0], 2, Math.max(2, vp.width - pw - 2));
+        const top = clampNum(pt[1], 2, Math.max(2, vp.height - ph - 2));
+        pin.style.left = Math.round(left) + 'px';
+        pin.style.top = Math.round(top) + 'px';
+      });
+    }
+
+    function refreshMemoPins() {
+      pageCards.forEach((card, i) => {
+        if (!card) return;
+        renderMemoPins(i + 1, card, pageViewports.get(i + 1));
+      });
+    }
+
+    // 메모 입력·수정 모달
+    function syncMemoSwatches() {
+      document.querySelectorAll('#memoModal .memo-swatch').forEach((b) => {
+        b.classList.toggle('active', b.dataset.color === memoColor);
+      });
+    }
+
+    function openMemoModal(memo, pageNo, anchor) {
+      if (memo) {
+        memoEditId = memo.id;
+        memoPage = memo.page;
+        memoColor = MEMO_STYLES[memo.color] ? memo.color : 'yellow';
+        memoAnchor = { fx: memo.fx, fy: memo.fy };
+      } else {
+        memoEditId = null;
+        memoPage = pageNo || currentPage;
+        memoAnchor = anchor || { fx: 0.5, fy: 0.5 };
+      }
+      el('memoTitle').textContent = memo ? '메모 수정' : '메모 추가';
+      el('memoPage').textContent = `${memoPage}쪽`;
+      el('memoText').value = memo ? memo.text : '';
+      el('memoDeleteBtn').hidden = !memo;
+      syncMemoSwatches();
+      el('memoModal').classList.add('open');
+      syncOverlayLock();
+      setTimeout(() => el('memoText').focus(), 60);
+    }
+
+    function closeMemoModal() {
+      el('memoModal').classList.remove('open');
+      memoEditId = null;
+      memoAnchor = null;
+      syncOverlayLock();
+    }
+
+    async function submitMemo() {
+      const text = el('memoText').value.trim();
+      if (!text) {
+        el('memoText').focus();
+        notify('메모 내용을 입력해 주세요.');
+        return;
+      }
+      if (memoEditId) {
+        const m = currentMemos.find((x) => x.id === memoEditId);
+        if (m) {
+          m.text = text;
+          m.color = memoColor;
+          m.at = Date.now();
+        }
+      } else {
+        currentMemos.push({
+          id: newMemoId(),
+          page: memoPage,
+          fx: memoAnchor ? memoAnchor.fx : 0.5,
+          fy: memoAnchor ? memoAnchor.fy : 0.5,
+          text,
+          color: memoColor,
+          at: Date.now()
+        });
+      }
+      const page = memoPage;
+      closeMemoModal();
+      refreshMemoPins();
+      await persistMemos();
+      notify(`메모를 저장했어요 · ${page}쪽`);
+    }
+
+    async function deleteMemo() {
+      if (!memoEditId) return;
+      const page = memoPage;
+      currentMemos = currentMemos.filter((x) => x.id !== memoEditId);
+      closeMemoModal();
+      refreshMemoPins();
+      await persistMemos();
+      notify(`메모를 삭제했어요 · ${page}쪽`);
+    }
+
+    function setMemoMode(on) {
+      if (on && !pdfDoc) {
+        pendingTool = 'memo';
+        fileInput.click();
+        return;
+      }
+      memoMode = !!(on && pdfDoc);
+      document.body.classList.toggle('memo-mode', memoMode);
+      const btn = el('memoBtn');
+      btn.classList.toggle('active', memoMode);
+      btn.setAttribute('aria-pressed', memoMode ? 'true' : 'false');
+      if (memoMode) {
+        if (moreSheet.classList.contains('open')) closeSheet();
+        refreshMemoPins();
+        if (window.scrollY < 1) window.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
+        closeMemoModal();
+      }
+    }
+
+    // 메모 포함 PDF 내보내기
+    function roundRectPath(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+      ctx.closePath();
+    }
+
+    function wrapMemoLines(ctx, text, maxWidth, maxLines) {
+      const out = [];
+      const chars = Array.from(String(text || '').replace(/\r/g, ''));
+      let line = '';
+      let used = 0;
+      for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i];
+        used = i + 1;
+        if (ch === '\n') {
+          out.push(line);
+          line = '';
+          if (out.length >= maxLines) break;
+          continue;
+        }
+        if (line && ctx.measureText(line + ch).width > maxWidth) {
+          out.push(line);
+          line = ch;
+          if (out.length >= maxLines) break;
+        } else {
+          line += ch;
+        }
+      }
+      if (out.length < maxLines) out.push(line);
+      if (!out.length) out.push('');
+      if (used < chars.length) {
+        let last = out[out.length - 1] || '';
+        while (last && ctx.measureText(last + '…').width > maxWidth) last = last.slice(0, -1);
+        out[out.length - 1] = last + '…';
+      }
+      return out;
+    }
+
+    // 페이지 그림 위에 놓을 메모 카드를 그린다 (한글 포함)
+    function drawMemoCard(ctx, memo, x, y, pageW, pageH) {
+      const style = memoStyle(memo.color);
+      const w = Math.round(clampNum(pageW * 0.34, 96, pageW * 0.62));
+      const pad = Math.round(w * 0.07);
+      const fs = Math.max(8, Math.round(w * 0.062));
+      const lh = Math.round(fs * 1.45);
+      const font = `600 ${fs}px -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif`;
+      ctx.font = font;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const lines = wrapMemoLines(ctx, memo.text, w - pad * 2, 7);
+      const h = pad * 2 + lines.length * lh;
+      const left = clampNum(x, 2, Math.max(2, pageW - w - 2));
+      const top = clampNum(y, 2, Math.max(2, pageH - h - 2));
+      const r = Math.round(w * 0.09);
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(16, 24, 40, 0.18)';
+      ctx.shadowBlur = Math.max(2, w * 0.02);
+      ctx.shadowOffsetY = Math.max(1, Math.round(w * 0.008));
+      ctx.fillStyle = style.fill;
+      roundRectPath(ctx, left, top, w, h, r);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.strokeStyle = style.border;
+      ctx.lineWidth = Math.max(1, w * 0.0045);
+      roundRectPath(ctx, left, top, w, h, r);
+      ctx.stroke();
+
+      ctx.font = font;
+      ctx.fillStyle = style.text;
+      lines.forEach((ln, i) => {
+        ctx.fillText(ln, left + pad, top + pad + i * lh + Math.round((lh - fs) / 2));
+      });
+      return { w, h, left, top };
+    }
+
+    async function exportMemosPdf() {
+      if (!pdfDoc || !currentFile) return;
+      if (!currentMemos.length) {
+        notify('페이지를 눌러 메모를 먼저 붙여 주세요.');
+        return;
+      }
+      if (docEncrypted) {
+        notify('암호가 걸린 PDF에는 메모를 넣어 저장할 수 없어요. 잠금 해제로 사본을 만든 뒤 그 파일에 메모를 붙여 주세요.');
+        return;
+      }
+      if (!window.PDFLib) {
+        notify('PDF 편집 모듈을 불러오지 못했어요.');
+        return;
+      }
+      const btn = el('memoSaveBtn');
+      const hint = el('memoHint');
+      const prevHint = hint.textContent;
+      btn.disabled = true;
+      hint.textContent = '메모를 넣은 PDF를 만드는 중...';
+      try {
+        const src = await PDFLib.PDFDocument.load(await loadCurrentPdfBytes(), { ignoreEncryption: true });
+        const pdfPages = src.getPages();
+        const groups = new Map();
+        currentMemos.forEach((m) => {
+          if (!m || !m.page) return;
+          if (!groups.has(m.page)) groups.set(m.page, []);
+          groups.get(m.page).push(m);
+        });
+        let drawn = 0;
+        for (const [pno, list] of groups) {
+          const target = pdfPages[pno - 1];
+          if (!target) continue;
+          const jsPage = await pdfDoc.getPage(pno);
+          const vp1 = jsPage.getViewport({ scale: 1, rotation: jsPage.rotate });
+          const scale = clampNum(1600 / Math.max(1, vp1.width), 1, 3);
+          const vp = jsPage.getViewport({ scale, rotation: jsPage.rotate });
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(vp.width));
+          c.height = Math.max(1, Math.round(vp.height));
+          const ctx = c.getContext('2d');
+          ctx.clearRect(0, 0, c.width, c.height);
+          const box = vp.viewBox;
+          const bw = box[2] - box[0];
+          const bh = box[3] - box[1];
+          list.forEach((m) => {
+            const pt = vp.convertToViewportPoint(box[0] + m.fx * bw, box[1] + m.fy * bh);
+            drawMemoCard(ctx, m, pt[0], pt[1], c.width, c.height);
+            drawn += 1;
+          });
+          const dataUrl = c.toDataURL('image/png');
+          const img = await src.embedPng(base64ToBytes(dataUrl.slice(dataUrl.indexOf(',') + 1)));
+          const size = target.getSize();
+          drawFullPageImage(target, img, size.width, size.height);
+        }
+        const bytes = await src.save();
+        const name = `${baseName()}-memo.pdf`;
+        downloadBlob(new Blob([bytes], { type: 'application/pdf' }), name);
+        notify(`${name} 저장했어요 · 메모 ${drawn}개`);
+      } catch (e) {
+        console.error(e);
+        if (e && /encrypt/i.test(String(e.message))) {
+          notify('암호가 걸린 PDF에는 메모를 넣어 저장할 수 없어요.');
+        } else {
+          notify('메모를 넣은 PDF를 만들지 못했어요.');
+        }
+      } finally {
+        btn.disabled = false;
+        hint.textContent = prevHint;
+      }
+    }
+
+    el('memoBtn').addEventListener('click', () => setMemoMode(!memoMode));
+    el('memoDoneBtn').addEventListener('click', () => setMemoMode(false));
+    el('memoSaveBtn').addEventListener('click', exportMemosPdf);
+    el('memoCancelBtn').addEventListener('click', closeMemoModal);
+    el('memoSaveMemoBtn').addEventListener('click', submitMemo);
+    el('memoDeleteBtn').addEventListener('click', deleteMemo);
+    el('btnMemo').addEventListener('click', () => {
+      closeSheet();
+      setMemoMode(true);
+      if (pdfDoc && document.body.classList.contains('home-view')) showViewer();
+    });
+    document.querySelectorAll('#memoModal .memo-swatch').forEach((b) => {
+      b.addEventListener('click', () => {
+        memoColor = b.dataset.color;
+        syncMemoSwatches();
+      });
+    });
+    el('memoText').addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        submitMemo();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMemoModal();
+      }
+    });
+    el('memoModal').addEventListener('click', (e) => {
+      if (e.target === el('memoModal')) closeMemoModal();
+    });
+
+    // 메모 모드에서 페이지를 누르면 그 좌표에 메모를 붙인다
+    pagesEl.addEventListener('click', (e) => {
+      if (!memoMode || !pdfDoc) return;
+      if (e.target.closest('.memo-pin')) return;
+      const card = e.target.closest('.page-card');
+      if (!card) return;
+      const num = parseInt(card.dataset.page, 10);
+      const vp = pageViewports.get(num);
+      if (!vp || !vp.viewBox) return;
+      const r = card.getBoundingClientRect();
+      const pt = vp.convertToPdfPoint(e.clientX - r.left, e.clientY - r.top);
+      const box = vp.viewBox;
+      const fx = clampNum((pt[0] - box[0]) / (box[2] - box[0]), 0.02, 0.98);
+      const fy = clampNum((pt[1] - box[1]) / (box[3] - box[1]), 0.02, 0.98);
+      openMemoModal(null, num, { fx, fy });
+    });
 
     // ---------- 검색 ----------
     function clearSearch() {
