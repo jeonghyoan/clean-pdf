@@ -14,15 +14,26 @@ Pick a PDF from your device and it opens right there. The file is read inside th
 - Only the visible pages are drawn, so long documents scroll without lag.
 - Can be installed to the home screen when served over https.
 
-## Install on Android
+## Install
 
-Open the deployed https address in Chrome or Samsung Internet, then open the browser menu and choose Install app or Add to Home screen.
+Nothing to build. Use it in one of two ways.
 
-Opening the file straight from storage works as well, but browsers do not offer the home screen install for local files.
+Use it in the browser:
 
-## Live
+- Open https://jeonghyoan.github.io/clean-pdf/
+- Or download the files and open index.html directly. All features work this way, but browsers do not allow the home screen install for local files.
 
-https://jeonghyoan.github.io/clean-pdf/
+Install it on an Android phone:
+
+1. Open the https address in Chrome or Samsung Internet.
+2. Open the browser menu and choose Install app, or Add to Home screen.
+3. Launch it from the home screen. It opens without the address bar.
+
+## Usage
+
+1. Tap Open and pick a PDF.
+2. Use the magnifier to search. The counter shows the current match and the total, and the arrows move between matches.
+3. Use the minus and plus buttons to zoom, the sun button for dark mode, and the page field at the bottom to jump.
 
 ## Deploy
 
