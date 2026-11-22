@@ -1,4 +1,4 @@
-const CACHE = 'pdf-viewer-v1';
+const CACHE = 'pdf-viewer-v2';
 const ASSETS = [
   './',
   './index.html',
