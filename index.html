@@ -1415,7 +1415,9 @@
 
     pagesEl.addEventListener('dblclick', (e) => {
       if (!pdfDoc) return;
-      if (e.target.closest('.textLayer')) return;
+      const target = e.target;
+      // 글자 위 더블클릭은 단어 선택으로 둔다
+      if (target && target.tagName === 'SPAN' && target.closest('.textLayer')) return;
       handleDoubleTap(e.clientX, e.clientY);
     });
 
