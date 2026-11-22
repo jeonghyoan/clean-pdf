@@ -1,55 +1,48 @@
-# 📄 깔끔한 PDF 뷰어 (Clean PDF Viewer)
+# clean-pdf
 
-광고 없이, 내 기기 안에서만 PDF를 여는 웹앱입니다. 서버로 파일을 올리지 않고 브라우저에서 직접 렌더링합니다.
+A small PDF viewer for the browser. No ads, no sign-up, no uploads.
 
-## 기능
+Pick a PDF from your device and it opens right there. The file is read inside the browser and is not sent anywhere.
 
-- **광고 없음 / 완전 로컬**: 고른 PDF는 서버로 전송되지 않고 기기 안에서만 열립니다.
-- **텍스트 검색**: `🔍` 버튼으로 PDF 안 단어를 찾고, 몇 번째 결과인지(`3 / 12`) 확인하며 `▲ / ▼`로 이동, 해당 글자에 형광펜 표시.
-- **확대 / 축소**: 상단 `-`, `100%`, `+` 버튼.
-- **다크 모드**: `🌙` 버튼, 설정은 브라우저에 기억됩니다.
-- **페이지 이동**: 하단 `◀ / ▶` 또는 페이지 번호 직접 입력.
-- **마지막 페이지 기억**: 같은 PDF를 다시 열면 보던 페이지로 이동.
-- **가벼운 렌더링**: 화면에 보이는 페이지만 그려서 페이지가 많은 PDF도 부드럽게 넘어갑니다.
-- **앱 설치(PWA)**: https 주소로 열면 홈 화면에 추가해 앱처럼 사용할 수 있습니다.
+## Features
 
-## 설치하는 법 (안드로이드)
+- Files stay local. Nothing is uploaded.
+- Text search with a match count, previous and next navigation, and a highlight on the page.
+- Zoom in, zoom out, reset.
+- Dark mode, remembered per browser.
+- Jump to a page by number; the last page read is remembered per file.
+- Only the visible pages are drawn, so long documents scroll without lag.
+- Can be installed to the home screen when served over https.
 
-1. 배포된 **https 주소**를 크롬 또는 삼성 인터넷으로 엽니다.
-2. 상단 `⬇` 버튼을 누르거나, 브라우저 메뉴에서 **앱 설치 / 홈 화면에 추가**를 선택합니다.
-3. 홈 화면 아이콘으로 실행하면 주소창 없는 앱 화면으로 열립니다.
+## Install on Android
 
-> 로컬 파일(`file://`)로 열면 모든 기능은 동작하지만, 보안 정책상 "홈 화면에 추가"는 제공되지 않습니다.
+Open the deployed https address in Chrome or Samsung Internet, then open the browser menu and choose Install app or Add to Home screen.
 
-## 배포 주소
+Opening the file straight from storage works as well, but browsers do not offer the home screen install for local files.
 
-- GitHub Pages: https://jeonghyoan.github.io/clean-pdf/
+## Live
 
-## 배포하는 법
+https://jeonghyoan.github.io/clean-pdf/
 
-정적 파일만 있으면 어디든 올릴 수 있습니다.
+## Deploy
 
-- **GitHub Pages**: 이 폴더를 레포에 올리고 Settings → Pages에서 브랜치를 지정합니다.
-- **Cloudflare Pages / Netlify**: 폴더를 그대로 업로드합니다. (빌드 명령 없음, 출력 디렉터리 = 루트)
+Any static host works. There is no build step.
 
-## 파일 구성
+- GitHub Pages: push this folder, then choose the branch in Settings > Pages.
+- Cloudflare Pages or Netlify: upload the folder as is.
 
-| 파일 | 설명 |
-| --- | --- |
-| `index.html` | 뷰어 본체 (UI + 로직) |
-| `manifest.json` | 앱 이름·아이콘·설치 설정(PWA) |
-| `sw.js` | 오프라인 캐시용 서비스 워커 |
-| `pdf.min.js` | PDF.js 엔진 (오프라인 동작용 로컬 사본) |
-| `pdf.worker.min.js` | PDF.js 파싱 워커 (없으면 PDF를 열 수 없음) |
-| `icon-192.png`, `icon-512.png` | 앱 아이콘 |
-| `icon-maskable-*.png` | 안드로이드 적응형 아이콘 |
+## Files
 
-## 개인정보
+- index.html - the viewer
+- manifest.json - app name, icons, install settings
+- sw.js - caches files for offline use
+- pdf.min.js, pdf.worker.min.js - PDF.js engine
+- icon-192.png, icon-512.png, icon-maskable-*.png - app icons
 
-- PDF 파일과 검색 기록은 서버로 전송되지 않습니다.
-- 다크 모드·마지막 페이지 설정만 브라우저 `localStorage`에 저장됩니다.
-- 별도 계정, 로그인, 분석 도구, 광고 스크립트가 없습니다.
+## Privacy
 
-## 라이선스
+PDFs and search terms stay in the browser. Only the theme and the last page read are stored, in localStorage.
 
-PDF.js(Mozilla, Apache-2.0)를 사용합니다. 그 외 코드는 자유롭게 사용하세요.
+## License
+
+PDF.js is by Mozilla, licensed Apache-2.0. The rest is free to use.
