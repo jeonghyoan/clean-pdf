@@ -617,7 +617,7 @@
         <span class="sheet-ico ico" data-icon="scissors"></span><span class="sheet-label">자르기</span>
       </button>
       <button class="sheet-item" id="txtExportBtn" disabled>
-        <span class="sheet-ico ico" data-icon="type"></span><span class="sheet-label">PDF → txt</span>
+        <span class="sheet-ico ico" data-icon="type"></span><span class="sheet-label">PDF → 텍스트</span>
       </button>
       <button class="sheet-item" id="unlockSaveBtn" disabled>
         <span class="sheet-ico ico" data-icon="lock-open"></span><span class="sheet-label">잠금 해제</span>
@@ -700,7 +700,7 @@
         <div class="home-grid" id="homeGrid">
           <button class="home-tile" data-tool="imagetopdf"><span class="tile-badge ico" data-icon="image"></span><span class="home-label">이미지 → PDF</span></button>
           <button class="home-tile" data-tool="pdfimg"><span class="tile-badge ico" data-icon="file-down"></span><span class="home-label">PDF → 이미지</span></button>
-          <button class="home-tile" data-tool="txt"><span class="tile-badge ico" data-icon="type"></span><span class="home-label">PDF → txt</span></button>
+          <button class="home-tile" data-tool="txt"><span class="tile-badge ico" data-icon="type"></span><span class="home-label">PDF → 텍스트</span></button>
           <button class="home-tile" data-tool="merge"><span class="tile-badge ico" data-icon="layers"></span><span class="home-label">PDF 합치기</span></button>
           <button class="home-tile" data-tool="split"><span class="tile-badge ico" data-icon="scissors"></span><span class="home-label">PDF 자르기</span></button>
           <button class="home-tile" data-tool="organize"><span class="tile-badge ico" data-icon="rows"></span><span class="home-label">페이지 정리</span></button>
@@ -3720,7 +3720,7 @@
       info.textContent = `${currentFileName} · ${pdfDoc.numPages}쪽`;
       body.appendChild(info);
       const progress = toolProgress(body);
-      const btn = toolButton(body, 'PDF → txt 저장', true, () => exportTextToFile(progress, btn));
+      const btn = toolButton(body, 'PDF → 텍스트 저장', true, () => exportTextToFile(progress, btn));
     }
 
     async function saveUnlockedPdf(note, btn) {
@@ -3800,7 +3800,7 @@
     const TOOL_TITLES = {
       organize: '페이지 정리',
       compress: '용량 압축',
-      txt: 'PDF → txt',
+      txt: 'PDF → 텍스트',
       unlock: '잠금 해제 PDF 저장',
       numbers: '쪽 번호 넣기',
       watermark: '워터마크',
