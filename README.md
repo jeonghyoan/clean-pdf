@@ -56,4 +56,6 @@ PDFs and search terms stay in the browser. Only the theme and the last page read
 
 ## License
 
-PDF.js is by Mozilla, licensed Apache-2.0. The rest is free to use.
+MIT. See LICENSE.
+
+The PDF engine is PDF.js by Mozilla, licensed under Apache-2.0.
