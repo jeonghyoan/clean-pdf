@@ -19,24 +19,24 @@
   </script>
   <style>
     :root {
-      --bg: #f4f5f7;
+      --bg: #f6f7f9;
       --surface: #ffffff;
-      --text: #18181b;
-      --muted: #71717a;
-      --border: #e4e4e7;
+      --text: #111214;
+      --muted: #6b7280;
+      --border: #e7e8eb;
       --accent: #2563eb;
       --accent-text: #ffffff;
-      --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
     body.dark {
-      --bg: #0f1115;
-      --surface: #181b20;
-      --text: #f4f4f5;
-      --muted: #a1a1aa;
-      --border: #27272a;
-      --accent: #3b82f6;
+      --bg: #121316;
+      --surface: #1a1c21;
+      --text: #f2f3f5;
+      --muted: #9aa1aa;
+      --border: #2a2d33;
+      --accent: #4b8bf5;
       --accent-text: #ffffff;
-      --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     [hidden] { display: none !important; }
@@ -53,7 +53,6 @@
       height: 54px; padding: 0 10px;
       background: var(--surface); border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 6px;
-      box-shadow: var(--shadow);
     }
     .group { display: flex; align-items: center; gap: 5px; min-width: 0; }
     .btn {
@@ -216,7 +215,7 @@
     }
     .thumb canvas {
       width: 100%; height: auto; display: block; background: #fff;
-      border: 1px solid var(--border); border-radius: 4px; box-shadow: var(--shadow);
+      border: 1px solid var(--border); border-radius: 4px;
     }
     .thumb.active canvas { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
     .thumb-num { font-size: 11px; color: var(--muted); font-weight: 600; }
@@ -225,8 +224,8 @@
     /* ---------- 더보기 시트 ---------- */
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
-      background: var(--surface); border-top-left-radius: 18px; border-top-right-radius: 18px;
-      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+      background: var(--surface); border-top-left-radius: 20px; border-top-right-radius: 20px;
+      box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.10);
       transform: translateY(105%); transition: transform 0.25s ease, visibility 0.25s ease;
       visibility: hidden;
       padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
@@ -240,12 +239,13 @@
     }
     .sheet-item {
       display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: 12px 6px; border: 1px solid var(--border); border-radius: 14px;
-      background: var(--bg); color: var(--text); font-size: 12px; font-weight: 600;
+      padding: 16px 6px; border: 1px solid var(--border); border-radius: 14px;
+      background: var(--surface); color: var(--text); font-size: 12.5px; font-weight: 600;
+      letter-spacing: -0.1px;
       cursor: pointer; font-family: inherit; line-height: 1.25;
     }
     .sheet-item:disabled { opacity: 0.4; cursor: default; }
-    .sheet-ico { font-size: 19px; }
+    .sheet-ico { font-size: 20px; }
     .sheet-sub { font-size: 10.5px; color: var(--muted); font-weight: 500; }
     .sheet-section { margin: 16px auto 0; max-width: 560px; }
     .sheet-section-head {
@@ -351,34 +351,44 @@
     }
     .modal.open { opacity: 1; pointer-events: auto; visibility: visible; }
     .modal-box {
-      background: var(--surface); border-radius: 16px; padding: 20px;
-      width: 100%; max-width: 340px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      background: var(--surface); border-radius: 18px; padding: 22px;
+      width: 100%; max-width: 340px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16);
     }
     .modal-box h2 { font-size: 16px; margin: 0 0 8px; }
     .modal-box p { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 
     /* ---------- 첫 화면(홈 메뉴) ---------- */
-    .home { width: 100%; max-width: 560px; margin: 0 auto; padding-top: 2px; }
-    .home-title { font-size: 21px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.3px; }
-    .home-sub { font-size: 12.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+    .home { width: 100%; max-width: 560px; margin: 0 auto; padding-top: 6px; }
+    .home-title { font-size: 24px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.5px; }
+    .home-sub { font-size: 13px; color: var(--muted); margin: 0 0 22px; line-height: 1.6; letter-spacing: -0.1px; }
     .home-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     @media (min-width: 620px) { .home-grid { grid-template-columns: repeat(3, 1fr); } }
     .home-tile {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; padding: 16px 8px; min-height: 92px;
+      gap: 10px; padding: 22px 10px;
       background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-      box-shadow: var(--shadow); color: var(--text); font-family: inherit;
+      color: var(--text); font-family: inherit;
       cursor: pointer; text-align: center; user-select: none;
+      transition: transform 0.08s ease, background 0.12s ease;
     }
-    .home-tile:active { opacity: 0.75; }
-    .home-ico { font-size: 24px; line-height: 1.1; }
-    .home-label { font-size: 13px; font-weight: 700; }
-    .home-desc { font-size: 10.5px; color: var(--muted); }
+    .home-tile:active { transform: scale(0.985); background: var(--bg); }
+    .home-ico { font-size: 26px; line-height: 1; }
+    .home-label { font-size: 13.5px; font-weight: 600; letter-spacing: -0.2px; }
     .home-recent { margin-top: 22px; }
     .home-recent-head {
       display: flex; align-items: center; justify-content: space-between;
       font-size: 13px; font-weight: 700; margin-bottom: 4px;
+    }
+    .recent-tools { display: flex; align-items: center; gap: 6px; }
+    .recent-usage { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .recent-click { cursor: pointer; }
+    .recent-click:active { background: var(--bg); }
+    .recent-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .recent-sub { font-size: 11px; color: var(--muted); }
+    .recent-del {
+      border: 0; background: none; color: var(--muted); font-size: 14px;
+      padding: 6px 8px; cursor: pointer; line-height: 1; font-family: inherit;
     }
     #toast {
       position: fixed; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom));
@@ -474,52 +484,52 @@
     <div class="sheet-handle"></div>
     <div class="sheet-grid">
       <button class="sheet-item" id="btnImgToPdf">
-        <span class="sheet-ico">🖼️</span><span class="sheet-label">이미지 → PDF</span><span class="sheet-sub">사진을 PDF로</span>
+        <span class="sheet-ico">🖼️</span><span class="sheet-label">이미지 → PDF</span>
       </button>
       <button class="sheet-item" id="btnPdfToImg">
-        <span class="sheet-ico">📤</span><span class="sheet-label">PDF → 이미지</span><span class="sheet-sub">PNG / ZIP</span>
+        <span class="sheet-ico">📤</span><span class="sheet-label">PDF → 이미지</span>
       </button>
       <button class="sheet-item" id="btnMergePdf">
-        <span class="sheet-ico">🧩</span><span class="sheet-label">PDF 합치기</span><span class="sheet-sub">여러 개를 하나로</span>
+        <span class="sheet-ico">🧩</span><span class="sheet-label">합치기</span>
       </button>
       <button class="sheet-item" id="btnSplitPdf">
-        <span class="sheet-ico">✂️</span><span class="sheet-label">PDF 자르기</span><span class="sheet-sub">페이지 추출</span>
+        <span class="sheet-ico">✂️</span><span class="sheet-label">자르기</span>
       </button>
       <button class="sheet-item" id="txtExportBtn" disabled>
-        <span class="sheet-ico">📝</span><span class="sheet-label">텍스트 .txt</span><span class="sheet-sub">전체 글자 추출</span>
+        <span class="sheet-ico">📝</span><span class="sheet-label">텍스트</span>
       </button>
       <button class="sheet-item" id="unlockSaveBtn" disabled>
-        <span class="sheet-ico">🔓</span><span class="sheet-label">잠금 해제 저장</span><span class="sheet-sub">이미지 PDF</span>
+        <span class="sheet-ico">🔓</span><span class="sheet-label">잠금 해제</span>
       </button>
       <button class="sheet-item" id="btnOrganize">
-        <span class="sheet-ico">🗂️</span><span class="sheet-label">페이지 정리</span><span class="sheet-sub">순서 · 삭제</span>
+        <span class="sheet-ico">🗂️</span><span class="sheet-label">페이지 정리</span>
       </button>
       <button class="sheet-item" id="btnCompress">
-        <span class="sheet-ico">🗜️</span><span class="sheet-label">용량 압축</span><span class="sheet-sub">JPEG 재압축</span>
+        <span class="sheet-ico">🗜️</span><span class="sheet-label">압축</span>
       </button>
       <button class="sheet-item" id="btnNumbers">
-        <span class="sheet-ico">🔢</span><span class="sheet-label">쪽 번호</span><span class="sheet-sub">전체 페이지</span>
+        <span class="sheet-ico">🔢</span><span class="sheet-label">쪽 번호</span>
       </button>
       <button class="sheet-item" id="btnWatermark">
-        <span class="sheet-ico">💧</span><span class="sheet-label">워터마크</span><span class="sheet-sub">문구 넣기</span>
+        <span class="sheet-ico">💧</span><span class="sheet-label">워터마크</span>
       </button>
       <button class="sheet-item" id="btnSign">
-        <span class="sheet-ico">✍️</span><span class="sheet-label">서명 · 그리기</span><span class="sheet-sub">현재 페이지</span>
+        <span class="sheet-ico">✍️</span><span class="sheet-label">서명</span>
       </button>
       <button class="sheet-item" id="viewModeBtn" disabled>
-        <span class="sheet-ico">📄</span><span class="sheet-label">연속 스크롤</span><span class="sheet-sub">보기 방식</span>
+        <span class="sheet-ico">📄</span><span class="sheet-label">연속 스크롤</span>
       </button>
       <button class="sheet-item" id="rotateBtn" disabled>
-        <span class="sheet-ico">🔄</span><span class="sheet-label">회전</span><span class="sheet-sub">90°씩</span>
+        <span class="sheet-ico">🔄</span><span class="sheet-label">회전</span>
       </button>
       <button class="sheet-item" id="fullscreenBtn" disabled>
-        <span class="sheet-ico">⛶</span><span class="sheet-label">전체화면</span><span class="sheet-sub">화면 꽉 채우기</span>
+        <span class="sheet-ico">⛶</span><span class="sheet-label">전체화면</span>
       </button>
       <button class="sheet-item" id="themeBtn">
-        <span class="sheet-ico">🌙</span><span class="sheet-label">다크모드</span><span class="sheet-sub">켜기 / 끄기</span>
+        <span class="sheet-ico">🌙</span><span class="sheet-label">다크모드</span>
       </button>
       <button class="sheet-item" id="installBtn" style="display:none;">
-        <span class="sheet-ico">⬇</span><span class="sheet-label">앱 설치</span><span class="sheet-sub">홈 화면에 추가</span>
+        <span class="sheet-ico">⬇</span><span class="sheet-label">앱 설치</span>
       </button>
     </div>
     <p class="sheet-note" id="unlockNote" hidden>암호가 걸린 PDF는 페이지를 그림으로 다시 구워 저장해요. 글자는 선택할 수 없습니다.</p>
@@ -542,23 +552,26 @@
       <h1 class="home-title">clean pdf</h1>
       <p class="home-sub">광고가 없으며 파일은 기기 안에서만 열립니다.</p>
       <div class="home-grid" id="homeGrid">
-        <button class="home-tile" data-tool="view"><span class="home-ico">📄</span><span class="home-label">PDF 보기</span><span class="home-desc">파일 골라 열기</span></button>
-        <button class="home-tile" data-tool="imagetopdf"><span class="home-ico">🖼️</span><span class="home-label">이미지 → PDF</span><span class="home-desc">사진 여러 장</span></button>
-        <button class="home-tile" data-tool="merge"><span class="home-ico">🔗</span><span class="home-label">PDF 합치기</span><span class="home-desc">여러 개를 하나로</span></button>
-        <button class="home-tile" data-tool="pdfimg"><span class="home-ico">📷</span><span class="home-label">PDF → 이미지</span><span class="home-desc">PNG / ZIP</span></button>
-        <button class="home-tile" data-tool="split"><span class="home-ico">✂️</span><span class="home-label">PDF 자르기</span><span class="home-desc">페이지 추출</span></button>
-        <button class="home-tile" data-tool="organize"><span class="home-ico">📑</span><span class="home-label">페이지 정리</span><span class="home-desc">삭제 · 순서</span></button>
-        <button class="home-tile" data-tool="compress"><span class="home-ico">🗜️</span><span class="home-label">용량 압축</span><span class="home-desc">JPEG 재압축</span></button>
-        <button class="home-tile" data-tool="unlock"><span class="home-ico">🔓</span><span class="home-label">잠금 해제</span><span class="home-desc">암호 푼 PDF 저장</span></button>
-        <button class="home-tile" data-tool="numbers"><span class="home-ico">🔢</span><span class="home-label">쪽 번호</span><span class="home-desc">전체 페이지</span></button>
-        <button class="home-tile" data-tool="watermark"><span class="home-ico">💧</span><span class="home-label">워터마크</span><span class="home-desc">문구 넣기</span></button>
-        <button class="home-tile" data-tool="sign"><span class="home-ico">✍️</span><span class="home-label">서명 · 그리기</span><span class="home-desc">현재 페이지</span></button>
-        <button class="home-tile" data-tool="txt"><span class="home-ico">📝</span><span class="home-label">텍스트(.txt)</span><span class="home-desc">전체 글자 추출</span></button>
+        <button class="home-tile" data-tool="view"><span class="home-ico">📄</span><span class="home-label">PDF 보기</span></button>
+        <button class="home-tile" data-tool="imagetopdf"><span class="home-ico">🖼️</span><span class="home-label">이미지 → PDF</span></button>
+        <button class="home-tile" data-tool="merge"><span class="home-ico">🔗</span><span class="home-label">PDF 합치기</span></button>
+        <button class="home-tile" data-tool="pdfimg"><span class="home-ico">📷</span><span class="home-label">PDF → 이미지</span></button>
+        <button class="home-tile" data-tool="split"><span class="home-ico">✂️</span><span class="home-label">PDF 자르기</span></button>
+        <button class="home-tile" data-tool="organize"><span class="home-ico">📑</span><span class="home-label">페이지 정리</span></button>
+        <button class="home-tile" data-tool="compress"><span class="home-ico">🗜️</span><span class="home-label">용량 압축</span></button>
+        <button class="home-tile" data-tool="unlock"><span class="home-ico">🔓</span><span class="home-label">잠금 해제</span></button>
+        <button class="home-tile" data-tool="numbers"><span class="home-ico">🔢</span><span class="home-label">쪽 번호</span></button>
+        <button class="home-tile" data-tool="watermark"><span class="home-ico">💧</span><span class="home-label">워터마크</span></button>
+        <button class="home-tile" data-tool="sign"><span class="home-ico">✍️</span><span class="home-label">서명 · 그리기</span></button>
+        <button class="home-tile" data-tool="txt"><span class="home-ico">📝</span><span class="home-label">텍스트(.txt)</span></button>
       </div>
       <div class="home-recent" id="homeRecentWrap" hidden>
         <div class="home-recent-head">
           <span>최근 문서</span>
-          <button class="link-btn" id="homeClearRecentBtn">기록 지우기</button>
+          <div class="recent-tools">
+            <span class="recent-usage" id="homeRecentUsage"></span>
+            <button class="link-btn" id="homeClearRecentBtn">기록 지우기</button>
+          </div>
         </div>
         <div class="recent-list" id="homeRecentList"></div>
         <p class="sheet-note">파일은 기기에 저장되지 않아 다시 열려면 직접 골라야 해요.</p>
@@ -908,7 +921,8 @@
       if (savedPage > 1 && savedPage <= pdfDoc.numPages) {
         await jumpToPage(savedPage, { smooth: false });
       }
-      addRecent(file.name, pdfDoc.numPages);
+      addRecent(file.name, pdfDoc.numPages, file.size);
+      saveRecentBlob(file, pdfDoc.numPages);
       refreshExportScreen();
       refreshSplitScreen();
       if (toolScreen.classList.contains('open')) renderTool();
@@ -1002,23 +1016,7 @@
     }
 
     function renderHomeRecent() {
-      const list = loadRecent();
-      const wrap = el('homeRecentWrap');
-      const box = el('homeRecentList');
-      box.innerHTML = '';
-      wrap.hidden = list.length === 0;
-      list.slice(0, 4).forEach((item) => {
-        const row = document.createElement('div');
-        row.className = 'recent-row';
-        const name = document.createElement('span');
-        name.className = 'recent-name';
-        name.textContent = item.name || '이름 없음';
-        const meta = document.createElement('span');
-        meta.className = 'recent-meta';
-        meta.textContent = `${item.pages || '?'}쪽 · ${formatDay(item.at)}`;
-        row.append(name, meta);
-        box.appendChild(row);
-      });
+      return refreshRecentViews();
     }
 
     let notifyTimer = null;
@@ -1077,10 +1075,8 @@
       if (!tile) return;
       startHomeTool(tile.dataset.tool);
     });
-    el('homeClearRecentBtn').addEventListener('click', () => {
-      localStorage.removeItem(RECENT_KEY);
-      renderHomeRecent();
-      renderRecent();
+    el('homeClearRecentBtn').addEventListener('click', async () => {
+      await clearAllRecent();
     });
 
     // ---------- 페이지 배치 ----------
@@ -1707,7 +1703,76 @@
       syncThemeLabel();
     }
 
-    // ---------- 최근 문서 ----------
+    // ---------- 최근 문서 (IndexedDB에 저장) ----------
+    const RECENT_DB = 'clean-pdf-db';
+    const RECENT_STORE = 'recent-files';
+    const RECENT_MAX = 5;
+    const RECENT_MAX_BYTES = 30 * 1024 * 1024;
+
+    function recentKey(name, size) {
+      return `${name}__${size || 0}`;
+    }
+
+    function openRecentDb() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+          reject(new Error('no-idb'));
+          return;
+        }
+        const req = indexedDB.open(RECENT_DB, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(RECENT_STORE)) {
+            db.createObjectStore(RECENT_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error || new Error('idb'));
+      });
+    }
+
+    function idbAll() {
+      return openRecentDb()
+        .then((db) => new Promise((resolve, reject) => {
+          const rq = db.transaction(RECENT_STORE, 'readonly').objectStore(RECENT_STORE).getAll();
+          rq.onsuccess = () => resolve(rq.result || []);
+          rq.onerror = () => reject(rq.error);
+        }))
+        .catch(() => []);
+    }
+
+    function idbPut(rec) {
+      return openRecentDb().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(RECENT_STORE, 'readwrite');
+        tx.objectStore(RECENT_STORE).put(rec);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('idb'));
+        tx.onabort = () => reject(tx.error || new Error('idb'));
+      }));
+    }
+
+    function idbDelete(id) {
+      return openRecentDb()
+        .then((db) => new Promise((resolve) => {
+          const tx = db.transaction(RECENT_STORE, 'readwrite');
+          tx.objectStore(RECENT_STORE).delete(id);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        }))
+        .catch(() => {});
+    }
+
+    function idbClear() {
+      return openRecentDb()
+        .then((db) => new Promise((resolve) => {
+          const tx = db.transaction(RECENT_STORE, 'readwrite');
+          tx.objectStore(RECENT_STORE).clear();
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        }))
+        .catch(() => {});
+    }
+
     function loadRecent() {
       try {
         const v = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
@@ -1717,10 +1782,19 @@
       }
     }
 
-    function addRecent(name, pages) {
+    function addRecent(name, pages, size) {
       const list = loadRecent().filter((x) => x && x.name !== name);
-      list.unshift({ name, pages, at: Date.now() });
-      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
+      list.unshift({ name, pages, size, at: Date.now() });
+      try {
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
+      } catch (e) {}
+    }
+
+    function dropRecentName(name) {
+      const list = loadRecent().filter((x) => x && x.name !== name);
+      try {
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+      } catch (e) {}
     }
 
     function formatDay(ts) {
@@ -1732,37 +1806,153 @@
       return `${d.getMonth() + 1}/${d.getDate()}`;
     }
 
-    function renderRecent() {
-      const list = loadRecent();
-      recentList.innerHTML = '';
-      if (!list.length) {
-        const em = document.createElement('div');
-        em.className = 'outline-empty';
-        em.style.padding = '10px 0';
-        em.textContent = '최근 연 문서가 없어요.';
-        recentList.appendChild(em);
-        el('clearRecentBtn').hidden = true;
-        return;
+    // 파일을 폰 안(IndexedDB)에 저장한다. 30MB를 넘으면 이름만 남긴다.
+    async function saveRecentBlob(file, pages) {
+      if (!('indexedDB' in window)) return;
+      if (!file || file.size > RECENT_MAX_BYTES) return;
+      try {
+        await idbPut({
+          id: recentKey(file.name, file.size),
+          name: file.name,
+          size: file.size,
+          pages,
+          at: Date.now(),
+          blob: file
+        });
+        const all = await idbAll();
+        all.sort((a, b) => (b.at || 0) - (a.at || 0));
+        for (const rec of all.slice(RECENT_MAX)) await idbDelete(rec.id);
+      } catch (e) {
+        notify('저장 공간이 부족해 최근 목록에 저장하지 못했어요.');
       }
-      el('clearRecentBtn').hidden = false;
-      list.forEach((item) => {
-        const row = document.createElement('div');
-        row.className = 'recent-row';
-        const name = document.createElement('span');
-        name.className = 'recent-name';
-        name.textContent = item.name || '이름 없음';
-        const meta = document.createElement('span');
-        meta.className = 'recent-meta';
-        meta.textContent = `${item.pages || '?'}쪽 · ${formatDay(item.at)}`;
-        row.append(name, meta);
-        recentList.appendChild(row);
-      });
     }
 
-    el('clearRecentBtn').addEventListener('click', () => {
-      localStorage.removeItem(RECENT_KEY);
-      renderRecent();
-    });
+    async function getRecentEntries() {
+      const stored = await idbAll();
+      const names = loadRecent();
+      const entries = [];
+      const seenKeys = new Set();
+      const seenNames = new Set();
+      stored
+        .sort((a, b) => (b.at || 0) - (a.at || 0))
+        .forEach((rec) => {
+          seenKeys.add(recentKey(rec.name, rec.size));
+          seenNames.add(rec.name);
+          entries.push({ id: rec.id, name: rec.name, pages: rec.pages, size: rec.size, at: rec.at, saved: true });
+        });
+      names.forEach((item) => {
+        if (!item || !item.name) return;
+        if (seenKeys.has(recentKey(item.name, item.size)) || seenNames.has(item.name)) return;
+        entries.push({
+          id: recentKey(item.name, item.size),
+          name: item.name,
+          pages: item.pages,
+          size: item.size,
+          at: item.at,
+          saved: false
+        });
+      });
+      entries.sort((a, b) => (b.at || 0) - (a.at || 0));
+      return entries;
+    }
+
+    async function openRecentEntry(entry) {
+      let rec = null;
+      try {
+        const stored = await idbAll();
+        rec = stored.find((r) => r.id === entry.id || (r.name === entry.name && (!entry.size || r.size === entry.size))) || null;
+      } catch (e) {
+        rec = null;
+      }
+      if (!rec || !rec.blob) {
+        notify('저장된 파일이 아니에요. 파일을 다시 골라 주세요.');
+        fileInput.click();
+        return;
+      }
+      try {
+        const file = new File([rec.blob], rec.name, { type: 'application/pdf' });
+        await loadPdfFile(file);
+      } catch (e) {
+        console.error(e);
+        notify('이 파일을 열지 못했어요. 다시 골라 주세요.');
+      }
+    }
+
+    function makeRecentRow(entry) {
+      const row = document.createElement('div');
+      row.className = 'recent-row recent-click';
+
+      const main = document.createElement('div');
+      main.className = 'recent-main';
+      const name = document.createElement('span');
+      name.className = 'recent-name';
+      name.textContent = entry.name || '이름 없음';
+      const sub = document.createElement('span');
+      sub.className = 'recent-sub';
+      const parts = [];
+      if (entry.pages) parts.push(`${entry.pages}쪽`);
+      if (entry.at) parts.push(formatDay(entry.at));
+      if (entry.size) parts.push(formatBytes(entry.size));
+      if (!entry.saved) parts.push('저장 안 됨');
+      sub.textContent = parts.join(' · ');
+      main.append(name, sub);
+
+      const del = document.createElement('button');
+      del.className = 'recent-del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', `${entry.name} 최근 목록에서 지우기`);
+      del.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await idbDelete(entry.id);
+        dropRecentName(entry.name);
+        refreshRecentViews();
+      });
+
+      row.append(main, del);
+      row.addEventListener('click', () => openRecentEntry(entry));
+      return row;
+    }
+
+    async function refreshRecentViews() {
+      const entries = await getRecentEntries();
+      const stored = entries.filter((e) => e.saved);
+
+      const homeBox = el('homeRecentList');
+      if (homeBox) {
+        homeBox.innerHTML = '';
+        entries.slice(0, 6).forEach((entry) => homeBox.appendChild(makeRecentRow(entry)));
+        el('homeRecentWrap').hidden = entries.length === 0;
+        const bytes = stored.reduce((sum, e) => sum + (e.size || 0), 0);
+        el('homeRecentUsage').textContent = stored.length ? `${stored.length}개 · ${formatBytes(bytes)}` : '';
+      }
+
+      const sheetBox = recentList;
+      if (sheetBox) {
+        sheetBox.innerHTML = '';
+        el('clearRecentBtn').hidden = entries.length === 0;
+        if (!entries.length) {
+          const em = document.createElement('div');
+          em.className = 'outline-empty';
+          em.style.padding = '10px 0';
+          em.textContent = '최근 연 문서가 없어요.';
+          sheetBox.appendChild(em);
+        } else {
+          entries.slice(0, 5).forEach((entry) => sheetBox.appendChild(makeRecentRow(entry)));
+        }
+      }
+    }
+
+    async function clearAllRecent() {
+      await idbClear();
+      try { localStorage.removeItem(RECENT_KEY); } catch (e) {}
+      refreshRecentViews();
+    }
+
+    function renderRecent() {
+      return refreshRecentViews();
+    }
+
+    el('clearRecentBtn').addEventListener('click', () => { clearAllRecent(); });
 
     // ---------- 검색 ----------
     function clearSearch() {

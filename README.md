@@ -15,7 +15,7 @@ Pick a PDF from your device and it opens right there. The file is read inside th
 - Zoom in, zoom out, pinch on touch screens, double tap to zoom.
 - Page rotation and fullscreen.
 - Jump to a page by number; the last page read is remembered per file.
-- Recent files list.
+- Recent files up to 30 MB each are kept in the browser's IndexedDB (five at most) and reopen from the home menu without picking the file again. Larger files are listed by name only.
 - Dark mode, remembered per browser.
 - Keyboard: arrow keys and PageUp/PageDown for pages, Home/End for first and last, + and - for zoom, 0 to reset.
 - Images to PDF: pick any number of images, reorder them, save one PDF.
