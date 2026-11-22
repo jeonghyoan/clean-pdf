@@ -4,6 +4,7 @@
   "description": "광고 없이 기기 안에서만 여는 PDF 뷰어",
   "start_url": "./",
   "scope": "./",
+  "orientation": "any",
   "display": "standalone",
   "background_color": "#f4f5f7",
   "theme_color": "#2563eb",

@@ -72,6 +72,20 @@
       font-size: 13px; font-weight: 600; color: var(--muted);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 92px;
     }
+    /* 좁은 폰 폭에서도 상단 버튼이 겹치거나 잘리지 않게 */
+    @media (max-width: 560px) {
+      .topbar { padding: 0 8px; gap: 4px; }
+      .group { gap: 4px; }
+      .filename { max-width: 78px; }
+    }
+    @media (max-width: 440px) {
+      .topbar { padding: 0 6px; gap: 3px; }
+      .group { gap: 3px; }
+      .btn.icon { padding: 7px 7px; }
+      .filename { display: none; }
+      #openBtn { padding: 7px 8px; }
+      #openBtn .open-label { display: none; }
+    }
 
     /* ---------- 검색 ---------- */
     .searchbar {
@@ -556,12 +570,14 @@
   <header class="topbar" id="viewerBar" hidden>
     <div class="group">
       <button class="btn icon" id="homeBtn" aria-label="홈"><span class="ico" data-icon="home"></span></button>
-      <button class="btn primary" id="openBtn"><span class="ico" data-icon="folder"></span><span>열기</span></button>
+      <button class="btn primary" id="openBtn" aria-label="열기"><span class="ico" data-icon="folder"></span><span class="open-label">열기</span></button>
       <span class="filename" id="fileName">파일 없음</span>
     </div>
     <div class="group">
       <button class="btn icon" id="memoBtn" aria-label="메모" aria-pressed="false"><span class="ico" data-icon="note"></span></button>
       <button class="btn icon" id="searchToggleBtn" disabled aria-label="검색"><span class="ico" data-icon="search"></span></button>
+      <button class="btn icon" id="orientBtn" disabled aria-label="가로 보기" title="가로·세로 전환"><span class="ico" data-icon="orientation"></span></button>
+      <button class="btn icon" id="fullscreenBtn" disabled aria-label="전체화면" title="전체화면"><span class="ico" data-icon="maximize"></span></button>
       <button class="btn icon" id="panelBtn" aria-label="목차와 썸네일"><span class="ico" data-icon="list"></span></button>
       <button class="btn icon" id="moreBtn" aria-label="더보기"><span class="ico" data-icon="more"></span></button>
     </div>
@@ -645,9 +661,6 @@
       </button>
       <button class="sheet-item" id="rotateBtn" disabled>
         <span class="sheet-ico ico" data-icon="rotate"></span><span class="sheet-label">회전</span>
-      </button>
-      <button class="sheet-item" id="fullscreenBtn" disabled>
-        <span class="sheet-ico ico" data-icon="maximize"></span><span class="sheet-label">전체화면</span>
       </button>
       <button class="sheet-item" id="themeBtn">
         <span class="sheet-ico ico" data-icon="moon"></span><span class="sheet-label">다크모드</span>
@@ -908,7 +921,9 @@
       type: '<path d="M4 6V4h16v2M12 4v16M8 20h8"/>',
       'book-open': '<path d="M12 6.5C10 5 7.5 4.3 4 4.3V18c3.5 0 6 .7 8 2.2 2-1.5 4.5-2.2 8-2.2V4.3c-3.5 0-6 .7-8 2.2Z"/><path d="M12 6.5V20"/>',
       rotate: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/>',
-      maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>'
+      orientation: '<rect x="3.2" y="6.2" width="17.6" height="11.6" rx="2"/><path d="M7.9 12h8.2"/><path d="m10.1 9.7-2.2 2.3 2.2 2.3"/><path d="m13.9 9.7 2.2 2.3-2.2 2.3"/>',
+      maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>',
+      minimize: '<path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M21 16h-3a2 2 0 0 0-2 2v3M3 16h3a2 2 0 0 1 2 2v3"/>'
     };
 
     function iconSvg(name, size) {
@@ -955,6 +970,7 @@
     const zoomInBtn = el('zoomInBtn');
     const themeBtn = el('themeBtn');
     const fullscreenBtn = el('fullscreenBtn');
+    const orientBtn = el('orientBtn');
     const viewModeBtn = el('viewModeBtn');
     const rotateBtn = el('rotateBtn');
     const moreBtn = el('moreBtn');
@@ -988,6 +1004,7 @@
     let pendingFile = null;
     let zoomFactor = 1.0;
     let rotation = 0;
+    let turnedForOrientation = null;    // 페이지를 대신 돌려 둔 경우 그 전 회전값
     let viewMode = 'scroll';            // 'scroll' | 'single'
     let currentPage = 1;
     let pageCards = [];
@@ -1135,10 +1152,11 @@
 
       zoomFactor = 1.0;
       rotation = 0;
+      turnedForOrientation = null;
       currentPage = 1;
       updateZoomLabel();
       enableControls(true);
-      updateMoreLabels();
+      updateViewControls();
 
       showViewer();
       await buildPages();
@@ -1220,6 +1238,7 @@
     function showHome() {
       document.body.classList.add('home-view');
       setMemoMode(false);
+      releaseOrientationLock();
       homeMenu.hidden = false;
       el('homeBar').hidden = false;
       el('viewerBar').hidden = true;
@@ -1683,7 +1702,7 @@
         const card = pageCards[currentPage - 1];
         if (card) card.scrollIntoView({ block: 'start' });
       }
-      updateMoreLabels();
+      updateViewControls();
     }
 
     viewModeBtn.addEventListener('click', async () => {
@@ -1691,11 +1710,18 @@
       closeSheet();
     });
 
+    // 페이지 내용을 90° 돌리는 회전 — 화면 방향을 고정할 수 없을 때의 가로·세로 전환에도 쓴다
+    async function rebuildAfterRotation() {
+      await rebuild({ page: currentPage, fx: 0.5, fy: 0, sx: window.innerWidth / 2, sy: 64 });
+      if (thumbsKey !== null) buildThumbs();
+      updateViewControls();
+    }
+
     rotateBtn.addEventListener('click', async () => {
       if (!pdfDoc) return;
       rotation = (rotation + 90) % 360;
-      await rebuild({ page: currentPage, fx: 0.5, fy: 0, sx: window.innerWidth / 2, sy: 64 });
-      if (thumbsKey !== null) buildThumbs();
+      turnedForOrientation = null;
+      await rebuildAfterRotation();
       closeSheet();
     });
 
@@ -1716,21 +1742,99 @@
       } catch (e) {
         document.body.classList.toggle('immersive');
       }
-      updateMoreLabels();
+      updateViewControls();
     }
 
-    fullscreenBtn.addEventListener('click', async () => {
-      await toggleFullscreen();
-      closeSheet();
-    });
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
     el('immersiveExit').addEventListener('click', () => {
       document.body.classList.remove('immersive');
-      updateMoreLabels();
+      updateViewControls();
     });
     document.addEventListener('fullscreenchange', () => {
       document.body.classList.toggle('immersive', false);
-      updateMoreLabels();
+      updateViewControls();
     });
+
+    // ---------- 가로·세로 전환 ----------
+    function screenOrientation() {
+      const type = screen.orientation && screen.orientation.type;
+      if (type) return type.indexOf('landscape') === 0 ? 'landscape' : 'portrait';
+      return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    }
+
+    async function enterFullscreenForOrientation() {
+      if (document.fullscreenElement) return true;
+      const docEl = document.documentElement;
+      try {
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen({ navigationUI: 'hide' });
+          return true;
+        }
+        if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function releaseOrientationLock() {
+      if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch (e) {}
+      }
+      turnedForOrientation = null;
+    }
+
+    async function toggleOrientation() {
+      const now = screenOrientation();
+      const target = now === 'landscape' ? 'portrait' : 'landscape';
+      const label = { landscape: '가로', portrait: '세로' };
+
+      // 1) 전체화면 + 화면 방향 잠금 (설치한 앱·안드로이드 크롬에서 실제로 돌아간다)
+      await enterFullscreenForOrientation();
+      let locked = false;
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        try {
+          await screen.orientation.lock(target);
+          locked = true;
+        } catch (e) {
+          locked = false;
+        }
+      }
+      if (locked) {
+        // 대신 돌려 두었던 페이지 회전이 있으면 되돌린다
+        if (turnedForOrientation !== null) {
+          rotation = turnedForOrientation;
+          turnedForOrientation = null;
+          await rebuildAfterRotation();
+        }
+        notify(`${label[target]} 화면으로 바꿨어요`);
+        updateViewControls();
+        return;
+      }
+
+      // 2) 일반 탭·데스크톱처럼 방향 잠금이 막힌 환경: 페이지를 0° ↔ 90° 로 돌려서 맞춘다
+      if (!pdfDoc) {
+        notify('PDF를 열면 가로·세로로 볼 수 있어요');
+        return;
+      }
+      if (turnedForOrientation === null) {
+        turnedForOrientation = rotation;
+        rotation = (rotation + 90) % 360;
+        notify(`${label[target]} 보기로 돌렸어요 · 이 화면에서는 방향을 고정할 수 없어요`);
+      } else {
+        rotation = turnedForOrientation;
+        turnedForOrientation = null;
+        notify(`페이지를 다시 ${label[now]} 보기로 돌렸어요`);
+      }
+      await rebuildAfterRotation();
+    }
+
+    orientBtn.addEventListener('click', toggleOrientation);
+    if (screen.orientation && screen.orientation.addEventListener) {
+      screen.orientation.addEventListener('change', () => updateViewControls());
+    }
+    window.addEventListener('orientationchange', () => updateViewControls());
 
     // ---------- 패널(목차·썸네일) ----------
     function syncOverlayLock() {
@@ -1912,7 +2016,7 @@
     function openSheet() {
       closePanel();
       renderRecent();
-      updateMoreLabels();
+      updateViewControls();
       moreSheet.classList.add('open');
       syncOverlayLock();
     }
@@ -1932,18 +2036,33 @@
     });
     el('sheetCloseBtn').addEventListener('click', closeSheet);
 
-    function updateMoreLabels() {
+    function updateViewControls() {
       const hasDoc = !!pdfDoc;
       viewModeBtn.disabled = !hasDoc;
       rotateBtn.disabled = !hasDoc;
       fullscreenBtn.disabled = !hasDoc;
+      orientBtn.disabled = !hasDoc;
       el('txtExportBtn').disabled = !hasDoc;
       el('unlockSaveBtn').disabled = !(hasDoc && docEncrypted);
       el('btnMemo').disabled = !hasDoc;
       el('unlockNote').hidden = !(hasDoc && docEncrypted);
       viewModeBtn.querySelector('.sheet-label').textContent = viewMode === 'scroll' ? '연속 스크롤' : '한 페이지씩';
+
+      // 상단 바 전체화면 버튼
       const isFull = !!document.fullscreenElement || document.body.classList.contains('immersive');
-      fullscreenBtn.querySelector('.sheet-label').textContent = isFull ? '전체화면 끄기' : '전체화면';
+      const fullIco = fullscreenBtn.firstElementChild;
+      const fullIcon = isFull ? 'minimize' : 'maximize';
+      if (fullIco && fullIco.dataset.icon !== fullIcon) setIcon(fullIco, fullIcon);
+      fullscreenBtn.setAttribute('aria-label', isFull ? '전체화면 끄기' : '전체화면');
+      fullscreenBtn.title = isFull ? '전체화면 끄기' : '전체화면';
+      fullscreenBtn.classList.toggle('active', isFull);
+
+      // 상단 바 가로·세로 버튼
+      const next = screenOrientation() === 'landscape' ? 'portrait' : 'landscape';
+      const nextLabel = next === 'landscape' ? '가로 보기' : '세로 보기';
+      orientBtn.setAttribute('aria-label', nextLabel);
+      orientBtn.title = nextLabel;
+      orientBtn.classList.toggle('active', turnedForOrientation !== null);
       syncThemeLabel();
     }
 
