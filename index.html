@@ -540,7 +540,7 @@
         <button class="link-btn" id="clearRecentBtn">기록 지우기</button>
       </div>
       <div class="recent-list" id="recentList"></div>
-      <p class="sheet-note">파일은 기기에 저장되지 않아요. 다시 열려면 파일을 직접 선택해 주세요.</p>
+      <p class="sheet-note">최근 5개까지 폰 안에 저장돼요. 30MB가 넘으면 다시 골라야 해요.</p>
       <p class="sheet-note" id="sheetProgress"></p>
     </div>
 
@@ -574,7 +574,7 @@
           </div>
         </div>
         <div class="recent-list" id="homeRecentList"></div>
-        <p class="sheet-note">파일은 기기에 저장되지 않아 다시 열려면 직접 골라야 해요.</p>
+        <p class="sheet-note">최근 5개까지 폰 안에 저장돼요.</p>
       </div>
     </div>
 
@@ -609,7 +609,7 @@
       <button class="btn primary" id="imgAddBtn">➕ 추가</button>
     </header>
     <div class="screen-body">
-      <p class="screen-hint">이미지를 여러 장 고르면 한 개의 PDF로 묶어요. ▲▼로 순서를 바꾸고 ✕로 뺄 수 있어요. 사진은 기기 안에서만 처리돼요.</p>
+      <p class="screen-hint">고른 순서대로 한 개의 PDF로 묶어요. 사진은 기기 안에서만 처리돼요.</p>
       <div class="img-list" id="imgList"></div>
       <div class="screen-empty" id="imgEmpty">아직 고른 이미지가 없어요.<br/>위의 <b>추가</b> 버튼으로 사진을 골라 주세요.</div>
     </div>
@@ -627,12 +627,12 @@
     </header>
     <div class="screen-body">
       <div id="exportEmpty">
-        <div class="screen-empty">아직 열린 PDF가 없어요.<br/>PDF를 열면 페이지를 PNG로 저장할 수 있어요.</div>
+        <div class="screen-empty">PDF를 먼저 골라 주세요.</div>
         <button class="btn primary wide" id="expOpenPdfBtn">PDF 파일 선택하기</button>
       </div>
       <div id="exportBody" hidden>
         <div class="export-name" id="exportName"></div>
-        <p class="screen-hint">지금 보고 있는 배율·회전 그대로 저장해요. 긴 문서는 ZIP 한 파일로 받는 게 편해요.</p>
+        <p class="screen-hint">보고 있는 배율과 회전 그대로 저장해요.</p>
         <button class="btn primary wide" id="saveCurrentPngBtn">현재 페이지 PNG 저장</button>
         <button class="btn wide" id="saveAllZipBtn">전체 페이지 ZIP 저장</button>
         <div class="section-label">페이지별 저장</div>
@@ -651,7 +651,7 @@
       <button class="btn primary" id="mergeAddBtn">➕ 추가</button>
     </header>
     <div class="screen-body">
-      <p class="screen-hint">PDF를 여러 개 고르면 위에서부터 차례대로 하나로 합쳐요. ▲▼로 순서를 바꾸고 ✕로 뺄 수 있어요.</p>
+      <p class="screen-hint">고른 순서대로 하나로 합쳐요.</p>
       <div class="img-list" id="mergeList"></div>
       <div class="screen-empty" id="mergeEmpty">아직 고른 PDF가 없어요.<br/>위의 <b>추가</b> 버튼으로 PDF를 골라 주세요.</div>
     </div>
@@ -669,7 +669,7 @@
     </header>
     <div class="screen-body">
       <div id="splitEmpty">
-        <div class="screen-empty">아직 열린 PDF가 없어요.<br/>PDF를 열면 원하는 페이지만 뽑을 수 있어요.</div>
+        <div class="screen-empty">PDF를 먼저 골라 주세요.</div>
         <button class="btn primary wide" id="splitOpenPdfBtn">PDF 파일 선택하기</button>
       </div>
       <div id="splitBody" hidden>
@@ -2998,8 +2998,8 @@
     }
 
     function renderTxt(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 글자를 뽑아낼 수 있어요.');
-      toolNote(body, '모든 페이지의 글자를 [1페이지] 형식으로 모아 .txt 파일로 저장해요.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
+      toolNote(body, '모든 글자를 모아 .txt로 저장해요.');
       const info = document.createElement('p');
       info.className = 'tool-file';
       info.textContent = `${currentFileName} · ${pdfDoc.numPages}쪽`;
@@ -3053,12 +3053,12 @@
     }
 
     function renderUnlock(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>비밀번호가 걸린 PDF를 열어 주세요.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
       if (!docEncrypted) {
-        toolNote(body, '이 PDF에는 암호가 걸려 있지 않아요. 잠금 해제본을 만들 필요가 없습니다.');
+        toolNote(body, '이 PDF에는 암호가 없어요.');
         return;
       }
-      toolNote(body, '페이지를 그림으로 다시 구워 비밀번호 없는 PDF로 저장해요. 글자는 선택할 수 없게 됩니다.');
+      toolNote(body, '그림으로 다시 구워 비밀번호 없는 PDF로 저장해요. 글자 선택은 안 돼요.');
       const info = document.createElement('p');
       info.className = 'tool-file';
       info.textContent = `${currentFileName} · ${pdfDoc.numPages}쪽`;
@@ -3203,12 +3203,12 @@
 
     // ---------- 페이지 정리 ----------
     function renderOrganize(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 페이지 순서를 바꾸고 뺄 수 있어요.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
       if (organizeDocSeq !== docSeq) {
         organizeOrder = Array.from({ length: pdfDoc.numPages }, (_, i) => i + 1);
         organizeDocSeq = docSeq;
       }
-      toolNote(body, '▲▼로 순서를 바꾸고 ✕로 페이지를 뺄 수 있어요. 원본 글자는 그대로 남습니다.');
+      toolNote(body, '▲▼ 순서, ✕ 빼기. 원본 글자는 그대로예요.');
 
       const list = document.createElement('div');
       body.appendChild(list);
@@ -3286,8 +3286,8 @@
 
     // ---------- 용량 압축 ----------
     function renderCompress(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 용량을 줄일 수 있어요.');
-      toolNote(body, '페이지를 그림으로 다시 만들어 용량을 줄입니다. 글자를 선택할 수 없게 되고, 글자만 있는 PDF는 오히려 커질 수 있어요.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
+      toolNote(body, '그림으로 다시 만들어 용량을 줄여요. 글자 선택은 안 되고, 글자만 있는 PDF는 커질 수 있어요.');
 
       const field = toolField(body, '품질');
       const sel = makeSelect(field, [
@@ -3344,8 +3344,8 @@
 
     // ---------- 쪽 번호 ----------
     function renderNumbers(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 쪽 번호를 넣을 수 있어요.');
-      toolNote(body, '모든 페이지에 번호를 찍어 새 PDF로 저장해요. 원본 글자는 그대로 남습니다.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
+      toolNote(body, '모든 페이지에 번호를 찍어 새 PDF로 저장해요.');
 
       const posField = toolField(body, '위치');
       const posSel = makeSelect(posField, [
@@ -3419,8 +3419,8 @@
     }
 
     function renderWatermark(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 워터마크를 넣을 수 있어요.');
-      toolNote(body, '모든 페이지 가운데에 대각선으로 문구를 넣어요. 한글도 그대로 나옵니다.');
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
+      toolNote(body, '가운데에 대각선으로 문구를 넣어요. 한글도 됩니다.');
 
       const textField = toolField(body, '문구');
       const input = document.createElement('input');
@@ -3483,8 +3483,8 @@
 
     // ---------- 서명 · 그리기 ----------
     function renderSign(body) {
-      if (!pdfDoc) return toolEmpty(body, '아직 열린 PDF가 없어요.<br/>PDF를 열면 서명이나 메모를 넣을 수 있어요.');
-      toolNote(body, `${currentPage}쪽 위에 서명이나 메모를 그려 PDF에 넣어요. 원본 글자는 그대로 남습니다.`);
+      if (!pdfDoc) return toolEmpty(body, 'PDF를 먼저 골라 주세요.');
+      toolNote(body, `${currentPage}쪽에 서명이나 메모를 그려 넣어요.`);
 
       const wrap = document.createElement('div');
       wrap.className = 'sign-wrap';
