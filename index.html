@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>깔끔한 PDF 뷰어</title>
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link id="appManifest" rel="manifest" href="./manifest.json" />
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon-192.png" />
+  <script src="./pdf.min.js"></script>
+  <script>
+    // 배포판: 같은 폴더의 워커 파일을 써서 PDF 파싱을 별도 스레드에서 처리
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js';
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --text: #18181b;
+      --muted: #71717a;
+      --border: #e4e4e7;
+      --accent: #2563eb;
+      --accent-text: #ffffff;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+    body.dark {
+      --bg: #0f1115;
+      --surface: #181b20;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --border: #27272a;
+      --accent: #3b82f6;
+      --accent-text: #ffffff;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+      height: 54px; padding: 0 10px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      box-shadow: var(--shadow);
+    }
+    .group { display: flex; align-items: center; gap: 5px; min-width: 0; }
+    .btn {
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      border-radius: 10px; padding: 7px 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn.primary {
+      background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+    }
+    .btn:active { opacity: 0.75; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .filename {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 105px;
+    }
+    .searchbar {
+      position: fixed; top: 54px; left: 0; right: 0; z-index: 25;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 8px 10px; display: none; align-items: center; gap: 6px;
+      box-shadow: var(--shadow);
+    }
+    .searchbar.show { display: flex; }
+    .search-input {
+      flex: 1; min-width: 0; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); border-radius: 10px;
+      padding: 7px 10px; font-size: 14px; outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-count {
+      font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap;
+      min-width: 46px; text-align: center;
+    }
+    .viewer-wrap {
+      padding: 64px 8px 80px;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      transition: padding-top 0.15s ease;
+    }
+    body.search-open .viewer-wrap { padding-top: 112px; }
+    .empty-state {
+      margin: auto; text-align: center; padding: 36px 24px;
+      max-width: 340px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; box-shadow: var(--shadow);
+    }
+    .empty-state h1 { font-size: 18px; margin: 0 0 8px; }
+    .empty-state p { font-size: 13px; color: var(--muted); margin: 0 0 20px; line-height: 1.5; }
+    .page-card {
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+    .page-card canvas { display: block; max-width: 100%; height: auto !important; }
+    .highlight-layer {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .hl-box {
+      position: absolute;
+      background: rgba(250, 204, 21, 0.45);
+      border-radius: 2px;
+    }
+    .hl-box.active {
+      background: rgba(249, 115, 22, 0.55);
+      outline: 2px solid #ea580c;
+    }
+    .page-badge {
+      position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.55); color: #fff;
+      font-size: 11px; padding: 2px 7px; border-radius: 999px;
+      pointer-events: none;
+    }
+    .bottombar {
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      z-index: 20; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 6px 12px; box-shadow: var(--shadow);
+      display: none; align-items: center; gap: 8px;
+    }
+    .bottombar.show { display: flex; }
+    .page-input {
+      width: 44px; text-align: center; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); border-radius: 8px;
+      padding: 4px; font-size: 13px; font-weight: 600;
+    }
+    .total-pages { font-size: 13px; color: var(--muted); font-weight: 600; }
+    #fileInput { display: none; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="group">
+      <button class="btn primary" id="openBtn">📂 열기</button>
+      <span class="filename" id="fileName">파일 없음</span>
+    </div>
+    <div class="group">
+      <button class="btn" id="searchToggleBtn" disabled title="검색">🔍</button>
+      <button class="btn" id="zoomOutBtn" disabled>-</button>
+      <button class="btn" id="zoomResetBtn" disabled>100%</button>
+      <button class="btn" id="zoomInBtn" disabled>+</button>
+      <button class="btn" id="installBtn" style="display:none;" title="앱으로 설치">⬇</button>
+      <button class="btn" id="themeBtn" title="다크모드">🌙</button>
+    </div>
+  </header>
+
+  <div class="searchbar" id="searchBar">
+    <input type="search" class="search-input" id="searchInput" placeholder="PDF 안의 단어 검색..." />
+    <span class="search-count" id="searchCount">0 / 0</span>
+    <button class="btn" id="searchPrevBtn" disabled>▲</button>
+    <button class="btn" id="searchNextBtn" disabled>▼</button>
+    <button class="btn" id="searchCloseBtn">✕</button>
+  </div>
+
+  <main class="viewer-wrap" id="viewer">
+    <div class="empty-state" id="emptyState">
+      <h1>광고 없는 PDF 뷰어</h1>
+      <p>폰에 있는 PDF 파일을 고르면 바로 열려요.<br/>서버 전송 없이 기기 안에서만 읽습니다.</p>
+      <button class="btn primary" id="emptyOpenBtn" style="padding: 12px 20px; font-size: 15px;">PDF 파일 선택하기</button>
+    </div>
+  </main>
+
+  <footer class="bottombar" id="bottomBar">
+    <button class="btn" id="prevBtn" style="padding: 5px 10px;">◀</button>
+    <input type="number" class="page-input" id="pageInput" min="1" value="1" />
+    <span class="total-pages" id="totalPages">/ 0</span>
+    <button class="btn" id="nextBtn" style="padding: 5px 10px;">▶</button>
+  </footer>
+
+  <input type="file" id="fileInput" />
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const openBtn = document.getElementById('openBtn');
+    const emptyOpenBtn = document.getElementById('emptyOpenBtn');
+    const fileNameEl = document.getElementById('fileName');
+    const viewer = document.getElementById('viewer');
+    const bottomBar = document.getElementById('bottomBar');
+    const pageInput = document.getElementById('pageInput');
+    const totalPagesEl = document.getElementById('totalPages');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const themeBtn = document.getElementById('themeBtn');
+
+    const searchToggleBtn = document.getElementById('searchToggleBtn');
+    const searchBar = document.getElementById('searchBar');
+    const searchInput = document.getElementById('searchInput');
+    const searchCount = document.getElementById('searchCount');
+    const searchPrevBtn = document.getElementById('searchPrevBtn');
+    const searchNextBtn = document.getElementById('searchNextBtn');
+    const searchCloseBtn = document.getElementById('searchCloseBtn');
+
+    let pdfDoc = null;
+    let zoomFactor = 1.0;
+    let pageCards = [];
+    let renderedPages = new Set();
+    let observer = null;
+    let currentFileKey = '';
+
+    // Search state
+    let pageTextCache = new Map(); // pageNum -> items[]
+    let searchMatches = []; // { pageNum, itemIndex }
+    let activeMatchIdx = -1;
+    let currentQuery = '';
+
+    // Theme
+    if (localStorage.getItem('pdf_viewer_dark') === '1') {
+      document.body.classList.add('dark');
+      themeBtn.textContent = '☀️';
+    }
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark');
+      themeBtn.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('pdf_viewer_dark', isDark ? '1' : '0');
+    });
+
+    openBtn.addEventListener('click', () => fileInput.click());
+    emptyOpenBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      await loadPdfFile(file);
+    });
+
+    async function loadPdfFile(file) {
+      if (typeof pdfjsLib === 'undefined') {
+        alert('PDF 엔진을 불러오지 못했어요. 인터넷 연결을 확인한 뒤 새로고침해 주세요.');
+        return;
+      }
+      fileNameEl.textContent = file.name;
+      currentFileKey = `pdf_pos_${file.name}_${file.size}`;
+      pageTextCache.clear();
+      clearSearch();
+      viewer.innerHTML = '<div class="empty-state"><p style="margin:0;">불러오는 중...</p></div>';
+
+      try {
+        const buf = await file.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+        zoomFactor = 1.0;
+        updateZoomLabel();
+        enableControls(true);
+        await buildPagePlaceholders();
+
+        const savedPage = parseInt(localStorage.getItem(currentFileKey) || '1', 10);
+        if (savedPage > 1 && savedPage <= pdfDoc.numPages) {
+          jumpToPage(savedPage);
+        }
+      } catch (err) {
+        console.error(err);
+        viewer.innerHTML = '<div class="empty-state"><h1>열기 실패</h1><p>손상되었거나 암호가 걸린 PDF일 수 있어요.</p><button class="btn primary" onclick="document.getElementById(\'fileInput\').click()">다른 파일 고르기</button></div>';
+      }
+    }
+
+    function enableControls(on) {
+      searchToggleBtn.disabled = !on;
+      zoomOutBtn.disabled = !on;
+      zoomResetBtn.disabled = !on;
+      zoomInBtn.disabled = !on;
+      bottomBar.classList.toggle('show', on);
+    }
+
+    function updateZoomLabel() {
+      zoomResetBtn.textContent = `${Math.round(zoomFactor * 100)}%`;
+    }
+
+    async function buildPagePlaceholders() {
+      viewer.innerHTML = '';
+      pageCards = [];
+      renderedPages.clear();
+      if (observer) observer.disconnect();
+
+      totalPagesEl.textContent = `/ ${pdfDoc.numPages}`;
+      pageInput.max = pdfDoc.numPages;
+      pageInput.value = 1;
+
+      const firstPage = await pdfDoc.getPage(1);
+      const baseViewport = firstPage.getViewport({ scale: 1 });
+      const maxWidth = Math.min(window.innerWidth - 16, 900);
+      const fitScale = (maxWidth / baseViewport.width) * zoomFactor;
+
+      for (let num = 1; num <= pdfDoc.numPages; num++) {
+        const card = document.createElement('div');
+        card.className = 'page-card';
+        card.dataset.page = num;
+        card.style.width = `${Math.floor(baseViewport.width * fitScale)}px`;
+        card.style.minHeight = `${Math.floor(baseViewport.height * fitScale)}px`;
+
+        const badge = document.createElement('span');
+        badge.className = 'page-badge';
+        badge.textContent = `${num} / ${pdfDoc.numPages}`;
+        card.appendChild(badge);
+
+        viewer.appendChild(card);
+        pageCards.push(card);
+      }
+
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const num = parseInt(entry.target.dataset.page, 10);
+          if (entry.isIntersecting) {
+            renderPage(num, entry.target);
+            if (entry.intersectionRatio >= 0.4) {
+              pageInput.value = num;
+              if (currentFileKey) localStorage.setItem(currentFileKey, String(num));
+            }
+          }
+        });
+      }, { rootMargin: '300px 0px', threshold: [0.01, 0.4] });
+
+      pageCards.forEach((c) => observer.observe(c));
+    }
+
+    async function renderPage(num, card) {
+      if (renderedPages.has(num)) return;
+      renderedPages.add(num);
+
+      const page = await pdfDoc.getPage(num);
+      const unscaled = page.getViewport({ scale: 1 });
+      const maxWidth = Math.min(window.innerWidth - 16, 900);
+      const scale = (maxWidth / unscaled.width) * zoomFactor;
+      const viewport = page.getViewport({ scale });
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = Math.floor(viewport.width * dpr);
+      canvas.height = Math.floor(viewport.height * dpr);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+      card.style.width = `${Math.floor(viewport.width)}px`;
+      card.style.minHeight = `${Math.floor(viewport.height)}px`;
+
+      const hlLayer = document.createElement('div');
+      hlLayer.className = 'highlight-layer';
+
+      const badge = card.querySelector('.page-badge');
+      card.innerHTML = '';
+      card.appendChild(canvas);
+      card.appendChild(hlLayer);
+      if (badge) card.appendChild(badge);
+
+      await page.render({
+        canvasContext: ctx,
+        viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+      }).promise;
+
+      if (currentQuery) {
+        await drawHighlightsForPage(num, card, viewport);
+      }
+    }
+
+    async function getPageTextItems(num) {
+      if (pageTextCache.has(num)) return pageTextCache.get(num);
+      const page = await pdfDoc.getPage(num);
+      const content = await page.getTextContent();
+      pageTextCache.set(num, content.items);
+      return content.items;
+    }
+
+    async function drawHighlightsForPage(num, card, viewport) {
+      const hlLayer = card.querySelector('.highlight-layer');
+      if (!hlLayer) return;
+      hlLayer.innerHTML = '';
+      if (!currentQuery) return;
+
+      const items = await getPageTextItems(num);
+      const q = currentQuery.toLowerCase();
+      const activeMatch = activeMatchIdx >= 0 ? searchMatches[activeMatchIdx] : null;
+
+      items.forEach((item, idx) => {
+        if (!item.str || !item.str.toLowerCase().includes(q)) return;
+        const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+        const fontHeight = Math.max(Math.hypot(tx[2], tx[3]), 10);
+        const width = Math.max(item.width * viewport.scale, 12);
+        const box = document.createElement('div');
+        box.className = 'hl-box';
+        if (activeMatch && activeMatch.pageNum === num && activeMatch.itemIndex === idx) {
+          box.classList.add('active');
+        }
+        box.style.left = `${tx[4]}px`;
+        box.style.top = `${tx[5] - fontHeight}px`;
+        box.style.width = `${width}px`;
+        box.style.height = `${fontHeight * 1.2}px`;
+        hlLayer.appendChild(box);
+      });
+    }
+
+    async function refreshVisibleHighlights() {
+      if (!pdfDoc) return;
+      for (const num of renderedPages) {
+        const card = pageCards[num - 1];
+        if (!card) continue;
+        const page = await pdfDoc.getPage(num);
+        const unscaled = page.getViewport({ scale: 1 });
+        const maxWidth = Math.min(window.innerWidth - 16, 900);
+        const scale = (maxWidth / unscaled.width) * zoomFactor;
+        const viewport = page.getViewport({ scale });
+        await drawHighlightsForPage(num, card, viewport);
+      }
+    }
+
+    function clearSearch() {
+      searchMatches = [];
+      activeMatchIdx = -1;
+      currentQuery = '';
+      searchCount.textContent = '0 / 0';
+      searchPrevBtn.disabled = true;
+      searchNextBtn.disabled = true;
+      document.querySelectorAll('.highlight-layer').forEach((el) => (el.innerHTML = ''));
+    }
+
+    let searchTimer = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => runSearch(searchInput.value.trim()), 250);
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentQuery === searchInput.value.trim() && searchMatches.length > 0) {
+          moveMatch(1);
+        } else {
+          runSearch(searchInput.value.trim());
+        }
+      }
+    });
+
+    async function runSearch(query) {
+      if (!pdfDoc || !query) {
+        clearSearch();
+        return;
+      }
+      currentQuery = query;
+      searchMatches = [];
+      activeMatchIdx = -1;
+      const q = query.toLowerCase();
+
+      for (let num = 1; num <= pdfDoc.numPages; num++) {
+        searchCount.textContent = `${num}/${pdfDoc.numPages}`;
+        const items = await getPageTextItems(num);
+        items.forEach((item, idx) => {
+          if (item.str && item.str.toLowerCase().includes(q)) {
+            searchMatches.push({ pageNum: num, itemIndex: idx });
+          }
+        });
+      }
+
+      if (searchMatches.length === 0) {
+        searchCount.textContent = '0 / 0';
+        searchPrevBtn.disabled = true;
+        searchNextBtn.disabled = true;
+        await refreshVisibleHighlights();
+        return;
+      }
+
+      searchPrevBtn.disabled = false;
+      searchNextBtn.disabled = false;
+      activeMatchIdx = 0;
+      await focusActiveMatch();
+    }
+
+    async function focusActiveMatch() {
+      if (activeMatchIdx < 0 || activeMatchIdx >= searchMatches.length) return;
+      const m = searchMatches[activeMatchIdx];
+      searchCount.textContent = `${activeMatchIdx + 1} / ${searchMatches.length}`;
+      jumpToPage(m.pageNum);
+      await refreshVisibleHighlights();
+    }
+
+    function moveMatch(delta) {
+      if (searchMatches.length === 0) return;
+      activeMatchIdx = (activeMatchIdx + delta + searchMatches.length) % searchMatches.length;
+      focusActiveMatch();
+    }
+
+    searchPrevBtn.addEventListener('click', () => moveMatch(-1));
+    searchNextBtn.addEventListener('click', () => moveMatch(1));
+
+    searchToggleBtn.addEventListener('click', () => {
+      const open = searchBar.classList.toggle('show');
+      document.body.classList.toggle('search-open', open);
+      if (open) {
+        searchInput.focus();
+      } else {
+        clearSearch();
+        searchInput.value = '';
+      }
+    });
+
+    searchCloseBtn.addEventListener('click', () => {
+      searchBar.classList.remove('show');
+      document.body.classList.remove('search-open');
+      clearSearch();
+      searchInput.value = '';
+    });
+
+    function jumpToPage(num) {
+      const target = Math.max(1, Math.min(pdfDoc ? pdfDoc.numPages : 1, num));
+      const card = pageCards[target - 1];
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        pageInput.value = target;
+      }
+    }
+
+    prevBtn.addEventListener('click', () => jumpToPage(parseInt(pageInput.value || '1', 10) - 1));
+    nextBtn.addEventListener('click', () => jumpToPage(parseInt(pageInput.value || '1', 10) + 1));
+    pageInput.addEventListener('change', () => jumpToPage(parseInt(pageInput.value || '1', 10)));
+
+    zoomInBtn.addEventListener('click', () => {
+      if (!pdfDoc) return;
+      zoomFactor = Math.min(2.5, +(zoomFactor + 0.2).toFixed(1));
+      updateZoomLabel();
+      buildPagePlaceholders();
+    });
+    zoomOutBtn.addEventListener('click', () => {
+      if (!pdfDoc) return;
+      zoomFactor = Math.max(0.6, +(zoomFactor - 0.2).toFixed(1));
+      updateZoomLabel();
+      buildPagePlaceholders();
+    });
+    zoomResetBtn.addEventListener('click', () => {
+      if (!pdfDoc) return;
+      zoomFactor = 1.0;
+      updateZoomLabel();
+      buildPagePlaceholders();
+    });
+  </script>
+
+  <script>
+    // ---------- 앱 설치(PWA) 지원 ----------
+    const APP_ICONS = [{"src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAEiklEQVR4nO3cPW7cVhiGUY4QN6kj78BA+hSps40AqVyl9zLcu4kqA9lG6hTpg2gHdu8mhVMYo0gWySGHP/fyvucsQLoDfA8/krLn1FXm1euPn0ufge3c392eSp/hsaKHMex0Xdkodv/Fhp4xe8ew2y8z+MyxVwib/xKDzxJbh7DZDzf4rGmrEFb/oQafLa0dws2aP8zws7W1Z2yVmgw+JayxDRZvAMNPKWvM3qIADD+lLZ3BqwMw/NRiySxeFYDhpzbXzuTsAAw/tbpmNmcFYPip3dwZnRyA4eco5szqpAAMP0czdWYvBmD4Oaops7vqP4WAoxkNwNWfo7s0w4MBGH5aMTbLboGI1huAqz+tGZppG4BozwJw9adVfbNtAxDtSQCu/rTu6xm3AYj2EICrPykez7oNQDQBEO2m69z+kOc88zYA0QRANAEQTQBEO3kAJpkNQDQBEO2b0gfY2j+/fVf6CEX8+fen7pe3n0ofo3o2QMPev/m29BGqJ4DGiWCcAAKIYJgAQoignwCCiOA5AYQRwVMCCCSC/wkglAi+EEAwEQggXnoEAiA6AgHQdV1uBALgQWIEAuCJtAgEwDNJEQiAXikRCIBBCREIgFGtRyAALmo5AgEwSasRCIDJWoxAAMzSWgQCYLaWIhAAV2klgua/GCvVj9/vMaDH/+ItG4BoAiCaAIgmAKIJgGgCIJoAiCYAogmAaAIgmgCIJgCiCYBoAiCaAIgmAKIJgGgCIJoAiCYAogmAaAIgmq9FGfHu9z9KH2E3v/78U+kjFGEDDEga/q7L+7xnAuiROgyJn1sARBMA0QTQI/WBMPFzC2BA2jCkfd4zr0FHpA5FEhuAaAIgmgCIJgCiCYBo3gKN+Pevl6WPsJsXP3wofYQibIABScPfdXmf90wAPVKHIfFzC4BoAiCaAHqkPhAmfm4BDEgbhrTPe+Y16IjUoUhiAxBNAEQTANEEQDQBEM1boBG1fE+O/5q5HRtgQC3D33V1naU1AuhR48DVeKYWCIBoAiCaAHrU+NBZ45laIIABNQ1cTWdpjdegIwxe+2wAogmAaAIgmgCIJgCiCYBoAiCaAIgmAKIJgGgCIJoAiCYAogmAaAIgmgCIJgCiCYBoAiCaAIgmAKIJgGgCIJoAiCYAogmAaAIgmgCIJgCiCYBoAiCaAIh2evX64+fSh4BSbACiCYBoN/d3t6fSh4AS7u9uTzYA0QRANAEQTQBEu+m6Lw8DpQ8CezrPvA1ANAEQ7SEAt0GkeDzrNgDRngRgC9C6r2fcBiDaswBsAVrVN9s2ANF6A7AFaM3QTNsARBsMwBagFWOzPLoBRMDRXZpht0BEuxiALcBRTZndSRtABBzN1JmdfAskAo5izqzOegYQAbWbO6OzH4JFQK2umc2r3gKJgNpcO5NXvwYVAbVYMouL/g4gAkpbOoOL/xAmAkpZY/ZWHV5ftc4e1rzorvpPIWwDtrb2jG02sLYBa9rq4rr5FVsILLH1XcVutyxCYI69bqd3v2cXAmP2fo4s+tAqBrqu7MuT6t7aiKJttb0p/A94DyAwL7c6/wAAAABJRU5ErkJggg==", "sizes": "192x192", "type": "image/png", "purpose": "any"}, {"src": "data:image/png;base64,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", "sizes": "512x512", "type": "image/png", "purpose": "any"}, {"src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADLUlEQVR4nO3cPWpVQRiA4RPRxlrcQcDewtptCFap7F2GvY2d4DasLezFJZg+TYpYCErIj+fcm8sk8z7PBs4MfC9zz4G5R8cnpxcLRD0avQAYSQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQNrj0QsY5eenZ6OXcBDffpwtbz+cjV7Gg+EEmNDn909HL+HBEMCkRLCOACYmgv8TwOREcDsBBIjgZgKIEMH1BBAigqsEECOCywQQJIJ/BBAlgj8EECYCAeTVIxAA6QgEwLIs3QgEwF/FCATAJbUIBMAVpQgEwLUqEQiAGxUiEAC3mj2C7KX4Wb16cYiBnfeSvROANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDS3Ane4OOXr6OXcCfevXk9egn3hhNgpVmGf1nm2su+BLDCjAMz4552IQDSBECaAFaY8aVxxj3tQgArzTQwM+1lXz6DbmBw5uMEIE0ApAmANO8AG5x/fz56CXfiyctfo5dwbzgBVppl+Jdlrr3sSwArzDgwM+5pFwIgTQCkCWCFGV8aZ9zTLgSw0kwDM9Ne9uUz6AYGZz5OANIEQJoASBMAaV6CNxhxkdwdhMNyAqw06l8U/HvDYQlghdFDOPr5MxMAaQJYYfTv8NHPn5kAVho1hIb/sHwF2sAwzscJQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaUfHJ6cXoxcBozgBSBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZD2G8hlVJCRqgpdAAAAAElFTkSuQmCC", "sizes": "192x192", "type": "image/png", "purpose": "maskable"}, {"src": "data:image/png;base64,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JYxNAMABB9fTuYYwPj8DgiMeDjAfsrmMgx/mIQDgBAcasFVeAQBAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAgp6/fPPHp7WHAADuyxMAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAEDQX6eyq58tbQoYAAAAAElFTkSuQmCC", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}];
+
+    (function setupPWA() {
+      const baseUrl = location.href.split('#')[0].split('?')[0];
+      const scopeUrl = baseUrl.replace(/[^/]*$/, '');
+
+      const manifest = {
+        name: '깔끔한 PDF 뷰어',
+        short_name: 'PDF 뷰어',
+        description: '광고 없이 내 폰 안에서만 열리는 PDF 뷰어',
+        start_url: baseUrl,
+        scope: scopeUrl,
+        id: baseUrl,
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#f4f5f7',
+        theme_color: '#2563eb',
+        icons: APP_ICONS
+      };
+
+      const manifestLink = document.getElementById('appManifest');
+      if (!manifestLink.getAttribute('href')) {
+        // 단일 HTML 파일로 열었을 때만 매니페스트를 메모리에서 만든다
+        try {
+          const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+          manifestLink.href = URL.createObjectURL(blob);
+          const touch = APP_ICONS.find((i) => i.sizes === '512x512') || APP_ICONS[0];
+          if (touch) document.getElementById('appleTouchIcon').href = touch.src;
+        } catch (e) {
+          console.warn('manifest 생성 실패', e);
+        }
+      }
+
+      // 오프라인 캐시는 같은 폴더에 sw.js가 있을 때만 동작 (없으면 조용히 넘어감)
+      if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+
+      const installBtn = document.getElementById('installBtn');
+      let deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'inline-flex';
+      });
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          alert('브라우저 메뉴에서 "앱 설치" 또는 "홈 화면에 추가"를 눌러 줘!');
+          return;
+        }
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+      window.addEventListener('appinstalled', () => {
+        installBtn.style.display = 'none';
+      });
+    })();
+  </script>
+</body>
+</html>
