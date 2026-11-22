@@ -167,7 +167,7 @@
   <main class="viewer-wrap" id="viewer">
     <div class="empty-state" id="emptyState">
       <h1>광고 없는 PDF 뷰어</h1>
-      <p>폰에 있는 PDF 파일을 고르면 바로 열려요.<br/>서버 전송 없이 기기 안에서만 읽습니다.</p>
+      <p>폰에 있는 PDF 파일을 고르면 바로 열려요.<br/>‘내 파일’ 앱에서 이 앱으로 공유해도 열립니다.<br/>서버 전송 없이 기기 안에서만 읽습니다.</p>
       <button class="btn primary" id="emptyOpenBtn" style="padding: 12px 20px; font-size: 15px;">PDF 파일 선택하기</button>
     </div>
   </main>
@@ -610,6 +610,28 @@
       window.addEventListener('appinstalled', () => {
         installBtn.style.display = 'none';
       });
+
+      // 다른 앱(내 파일 등)에서 PDF를 공유해 들어온 경우 바로 열기
+      (async () => {
+        try {
+          if (!new URLSearchParams(location.search).has('shared')) return;
+          if (!('caches' in window)) return;
+          const key = new URL('./shared-file', location.href).href;
+          const cache = await caches.open('pdf-viewer-share');
+          const res = await cache.match(key);
+          if (!res) return;
+          await cache.delete(key);
+          const blob = await res.blob();
+          let name = 'shared.pdf';
+          try {
+            name = decodeURIComponent(res.headers.get('x-filename') || '') || name;
+          } catch (e) {}
+          history.replaceState(null, '', location.pathname);
+          await loadPdfFile(new File([blob], name, { type: 'application/pdf' }));
+        } catch (e) {
+          console.warn('공유 파일 열기 실패', e);
+        }
+      })();
     })();
   </script>
 </body>
