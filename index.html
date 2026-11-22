@@ -179,7 +179,7 @@
     <button class="btn" id="nextBtn" style="padding: 5px 10px;">▶</button>
   </footer>
 
-  <input type="file" id="fileInput" accept="application/pdf,.pdf" />
+  <input type="file" id="fileInput" accept="application/pdf,.pdf,android/genericfile" />
 
   <script>
     const fileInput = document.getElementById('fileInput');
@@ -235,6 +235,11 @@
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+        alert('PDF 파일만 열 수 있어요. 선택한 파일: ' + file.name);
+        e.target.value = '';
+        return;
+      }
       await loadPdfFile(file);
     });
 
