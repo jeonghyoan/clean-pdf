@@ -234,7 +234,10 @@
     }
     .sheet.open { transform: none; visibility: visible; }
     .sheet-handle { width: 36px; height: 4px; border-radius: 99px; background: var(--border); margin: 4px auto 10px; }
-    .sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sheet-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      max-width: 560px; margin: 0 auto;
+    }
     .sheet-item {
       display: flex; flex-direction: column; align-items: center; gap: 3px;
       padding: 12px 6px; border: 1px solid var(--border); border-radius: 14px;
@@ -244,7 +247,7 @@
     .sheet-item:disabled { opacity: 0.4; cursor: default; }
     .sheet-ico { font-size: 19px; }
     .sheet-sub { font-size: 10.5px; color: var(--muted); font-weight: 500; }
-    .sheet-section { margin-top: 16px; }
+    .sheet-section { margin: 16px auto 0; max-width: 560px; }
     .sheet-section-head {
       display: flex; align-items: center; justify-content: space-between;
       font-size: 13px; font-weight: 700; margin-bottom: 6px;
@@ -264,8 +267,8 @@
       font-weight: 600; min-width: 0;
     }
     .recent-meta { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-    .sheet-note { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
-    .sheet-close { width: 100%; justify-content: center; margin-top: 14px; padding: 10px; }
+    .sheet-note { font-size: 11.5px; color: var(--muted); margin: 8px auto 0; line-height: 1.5; max-width: 560px; }
+    .sheet-close { width: 100%; max-width: 560px; justify-content: center; margin: 14px auto 0; padding: 10px; display: flex; }
 
     /* ---------- 변환 화면 ---------- */
     .screen {
