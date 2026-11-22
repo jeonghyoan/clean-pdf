@@ -1,7 +1,7 @@
 {
-  "name": "깔끔한 PDF 뷰어",
-  "short_name": "PDF 뷰어",
-  "description": "광고 없이 내 폰 안에서만 열리는 PDF 뷰어",
+  "name": "clean pdf",
+  "short_name": "clean pdf",
+  "description": "광고 없이 기기 안에서만 여는 PDF 뷰어",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

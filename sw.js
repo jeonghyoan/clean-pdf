@@ -1,4 +1,4 @@
-const CACHE = 'pdf-viewer-v4';
+const CACHE = 'pdf-viewer-v6';
 const SHARE_CACHE = 'pdf-viewer-share';
 const ASSETS = [
   './',
@@ -9,7 +9,8 @@ const ASSETS = [
   './icon-512.png',
   './icon-maskable-192.png',
   './icon-maskable-512.png',
-  './pdf.worker.min.js'
+  './pdf.worker.min.js',
+  './pdf-lib.min.js'
 ];
 
 self.addEventListener('install', (e) => {

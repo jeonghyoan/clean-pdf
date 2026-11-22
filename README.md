@@ -7,12 +7,29 @@ Pick a PDF from your device and it opens right there. The file is read inside th
 ## Features
 
 - Files stay local. Nothing is uploaded.
+- Continuous scroll or one page at a time.
+- Table of contents and page thumbnails.
 - Text search with a match count, previous and next navigation, and a highlight on the page.
-- Zoom in, zoom out, reset.
-- Dark mode, remembered per browser.
+- Select and copy text from a page.
+- Zoom in, zoom out, pinch on touch screens, double tap to zoom.
+- Page rotation and fullscreen.
 - Jump to a page by number; the last page read is remembered per file.
+- Recent files list.
+- Dark mode, remembered per browser.
+- Keyboard: arrow keys and PageUp/PageDown for pages, Home/End for first and last, + and - for zoom, 0 to reset.
+- Images to PDF: pick any number of images, reorder them, save one PDF.
+- PDF to images: save the current page or a single page as PNG, or all pages in one ZIP.
+- Merge several PDFs into one.
+- Extract pages into a new PDF, for example 1-3, 5, 8-10.
+- Export all text as a .txt file.
+- Organize pages: reorder or remove pages and save a new PDF.
+- Compress: render pages as JPEG at normal or light quality.
+- Page numbers at the top or bottom, as 1 or 1 / N.
+- Watermark text, Korean included, with adjustable opacity.
+- Sign or draw on the current page with a pen, highlighter and eraser.
+- Open a password-protected PDF and save an unlocked copy. The unlocked copy is made of page images, so its text is not selectable.
 - Only the visible pages are drawn, so long documents scroll without lag.
-- Can be installed to the home screen when served over https.
+- Can be installed to the home screen when served over https, and works offline.
 
 ## Install
 
@@ -32,8 +49,8 @@ Install it on an Android phone:
 ## Usage
 
 1. Tap Open and pick a PDF.
-2. Use the magnifier to search. The counter shows the current match and the total, and the arrows move between matches.
-3. Use the minus and plus buttons to zoom, the sun button for dark mode, and the page field at the bottom to jump.
+2. Use the magnifier to search, the circle button for zoom, and the page field at the bottom to jump.
+3. Tap the menu (three dots) for view mode, rotation, fullscreen, dark mode, and the tools: images to PDF, PDF to images, merge, extract pages, text export, unlock, page organizer, compress, page numbers, watermark, and sign.
 
 ## Deploy
 
@@ -48,14 +65,15 @@ Any static host works. There is no build step.
 - manifest.json - app name, icons, install settings
 - sw.js - caches files for offline use
 - pdf.min.js, pdf.worker.min.js - PDF.js engine
+- pdf-lib.min.js - PDF creation and editing
 - icon-192.png, icon-512.png, icon-maskable-*.png - app icons
 
 ## Privacy
 
-PDFs and search terms stay in the browser. Only the theme and the last page read are stored, in localStorage.
+PDFs, images, and search terms stay in the browser. Only the theme, the last page read, and the recent file names are stored, in localStorage.
 
 ## License
 
 MIT. See LICENSE.
 
-The PDF engine is PDF.js by Mozilla, licensed under Apache-2.0.
+The PDF engine is PDF.js by Mozilla, licensed under Apache-2.0. pdf-lib is by Andrew Dillon, licensed under MIT.
