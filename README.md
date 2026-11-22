@@ -7,6 +7,7 @@ Pick a PDF from your device and it opens right there. The file is read inside th
 ## Features
 
 - Files stay local. Nothing is uploaded.
+- Opens on a menu of tools. The home button returns to it, keeping the current PDF loaded.
 - Continuous scroll or one page at a time.
 - Table of contents and page thumbnails.
 - Text search with a match count, previous and next navigation, and a highlight on the page.
