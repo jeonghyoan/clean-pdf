@@ -1,4 +1,4 @@
-const CACHE = 'pdf-viewer-v13';
+const CACHE = 'pdf-viewer-v14';
 const SHARE_CACHE = 'pdf-viewer-share';
 const ASSETS = [
   './',
