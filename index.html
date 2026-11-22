@@ -4429,9 +4429,7 @@
         installBtn.style.display = 'flex';
         if (homeInstallBtn) homeInstallBtn.hidden = false;
       });
-      installBtn.addEventListener('click', async () => {
-        document.getElementById('moreSheet').classList.remove('open');
-        if (typeof syncOverlayLock === 'function') syncOverlayLock();
+      async function runInstallPrompt() {
         if (!deferredPrompt) {
           alert('브라우저 메뉴에서 "앱 설치" 또는 "홈 화면에 추가"를 눌러 줘!');
           return;
@@ -4441,7 +4439,15 @@
         deferredPrompt = null;
         installBtn.style.display = 'none';
         if (homeInstallBtn) homeInstallBtn.hidden = true;
+      }
+      installBtn.addEventListener('click', () => {
+        document.getElementById('moreSheet').classList.remove('open');
+        if (typeof syncOverlayLock === 'function') syncOverlayLock();
+        runInstallPrompt();
       });
+      if (homeInstallBtn) {
+        homeInstallBtn.addEventListener('click', runInstallPrompt);
+      }
       window.addEventListener('appinstalled', () => {
         installBtn.style.display = 'none';
         if (homeInstallBtn) homeInstallBtn.hidden = true;
